@@ -1,0 +1,493 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Photonic Nonlinear Piano</title><style>
+:root{--bg:#f6f9fb;--ink:#233e50;--muted:#77909c;--line:#dce7ed;--blue:#29869b;--green:#358f82;--amber:#c18d53}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:12px -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;color:var(--ink)}main{max-width:1700px;margin:auto;padding:21px 23px 50px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}h1{margin:0;font-size:clamp(31px,3vw,47px);letter-spacing:-1.5px;font-weight:740}
+.panel{min-width:0;background:white;border:1px solid var(--line);border-radius:12px;padding:15px;box-shadow:0 1px 9px #1c4a6308}.panel h2{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#4d7184;font-weight:850;margin:0 0 11px}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.between{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}.primary{color:white;background:#2b8096;border:0;border-radius:8px;padding:11px 14px;font-weight:800;font-size:12px;cursor:pointer}.secondary{background:white;color:#44788a;border:1px solid #d5e1e6;border-radius:8px;padding:10px 13px;font-weight:760;font-size:11px;cursor:pointer}.secondary:hover,.primary:hover{filter:brightness(.96)}button:disabled{opacity:.4}.small{color:#688596;font-size:11px;font-weight:640}.chip{font-size:10px;font-weight:800;border-radius:100px;background:#eaf5f0;color:#377d70;padding:6px 11px}
+.grid{display:grid;grid-template-columns:minmax(0,1.52fr) minmax(380px,1fr);gap:13px;align-items:start}.col{display:grid;gap:13px;align-content:start}.field{background:#f4f8fa;border:1px solid #e2ebef;border-radius:10px;overflow:hidden;display:grid;place-items:center;min-height:290px}.field canvas{width:100%;max-height:460px;object-fit:contain;image-rendering:auto}
+.statgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:9px}.stat{border:1px solid #e4edf2;border-radius:7px;padding:8px 9px;min-width:0}.stat span{display:block;font-size:9px;color:#7e96a3;font-weight:760}.stat strong{font:750 15px ui-monospace,Consolas,monospace;color:#357e90;display:block;margin-top:4px;white-space:nowrap}.chartgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.scope{width:100%;height:105px;display:block;background:#fbfdff;border:1px solid #e3edf1;border-radius:7px}
+.keyboard-clip{overflow:auto;border:1px solid #dae7ee;border-radius:7px;background:#fbfdff;scrollbar-width:thin}.keyboard{height:158px;position:relative;margin:4px}.key{position:absolute;top:0;border-radius:0 0 5px 5px;cursor:pointer}.key.white{height:153px;border:1px solid #bdcdd7;background:#fff;z-index:1;text-align:left;color:#628593;font-size:10px;padding-top:124px}.key.black{height:96px;border:1px solid #224052;background:linear-gradient(#365a70,#183447);z-index:2}.key.white.sel,.key.white:hover{background:#d3eee6}.key.black.sel,.key.black:hover{background:#4d9b9a}.key.observed.white:after{content:'';position:absolute;bottom:6px;left:45%;width:5px;height:5px;border-radius:50%;background:#399f82}
+.ctrlgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px}.ctrl{border-bottom:1px solid #ecf1f4;padding:7px 0 8px;min-width:0}.ctrl label{font-size:11px;color:#627d8c;font-weight:710;display:flex;justify-content:space-between;gap:10px;align-items:center}.ctrl output{font:730 10px ui-monospace,monospace;color:#247e91;white-space:nowrap}.ctrl input[type=range]{display:block;width:100%;margin-top:9px;accent-color:#27889b}.ctrl select{width:100%;border:1px solid #d8e5eb;border-radius:6px;background:white;color:#385d70;font-size:11px;padding:7px;margin-top:5px}.ctrl input[type=checkbox]{accent-color:#25869a;width:16px;height:16px}.ctrl.checkbox{display:flex;align-items:center;justify-content:space-between}.ctrl.checkbox label{flex:1}
+.transport{display:grid;gap:8px}.transport input{width:100%;accent-color:#318aa0}.divider{height:1px;background:#e5edf2;margin:10px 0}.note{font-weight:800;font-size:20px;letter-spacing:-.6px}#message{color:#8496a1;font-size:10px}#lambdaInfo{font-size:10px;font-family:ui-monospace,monospace;color:#547f8e;line-height:1.6;overflow-wrap:anywhere}
+.presets{display:flex;flex-wrap:wrap;gap:5px}.presets button{background:#f2f7f9;border:1px solid #e1e9ed;border-radius:7px;padding:6px 8px;color:#4c7587;font-weight:800;font-size:10px;cursor:pointer}.presets button:hover{background:#dff0f0}
+.equations{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px;margin-top:13px}.equations pre{font:12px/1.9 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;margin:0;color:#385c6b}.equations h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px;color:#507d8b}.eqgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.eqbox{background:#f7fafc;border:1px solid #e3edf1;border-radius:8px;padding:12px}.eqnote{color:#77909a;font-size:10px;margin-top:9px}
+@media(max-width:1050px){.grid{grid-template-columns:1fr}.field{min-height:240px}.statgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){main{padding:12px}.ctrlgrid,.chartgrid,.eqgrid{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,1fr)}.ctrl{padding:6px 0}h1{font-size:30px}}
+</style></head><body><main>
+<header><h1>Photonic Nonlinear Piano</h1><div class="row"><span id="audioStatus" class="chip">AUDIO OFF</span><button class="primary" id="strike">● CW PULSE</button><button class="secondary" id="reset">Reset</button></div></header>
+<section class="panel"><div class="between"><div class="row"><strong class="note" id="noteTitle">C4</strong><span class="small" id="fitLabel"></span></div><div class="row"><span id="fitCaption" class="chip"></span><button id="muteLaser" class="secondary">Laser ON / OFF</button></div></div><div class="keyboard-clip" style="margin-top:11px"><div class="keyboard" id="keyboard"></div></div></section>
+<div class="grid" style="margin-top:13px"><div class="col">
+<section class="panel"><div class="between"><h2>Optical ring · Eᶻ / Hˣ / Hʸ</h2><div class="row"><span class="chip" id="liveRings">12</span><span class="small" id="materialStatus">χ² + χ³</span></div></div><div class="field"><canvas id="fdtd" width="210" height="154"></canvas></div>
+<div class="statgrid"><div class="stat"><span>CAVITY |a|²</span><strong id="liveOpt">0.000</strong></div><div class="stat"><span>RING OUTPUT</span><strong id="livePort">0.000</strong></div><div class="stat"><span>EXIT |E|²</span><strong id="liveFDTD">0.000</strong></div><div class="stat"><span>AUDIO RMS</span><strong id="liveAudio">0.000</strong></div></div>
+<div class="statgrid"><div class="stat"><span>χ² POLARIZATION</span><strong id="p2Display">0</strong></div><div class="stat"><span>χ³ POLARIZATION</span><strong id="p3Display">0</strong></div><div class="stat"><span>Δn</span><strong id="n2Display">0</strong></div><div class="stat"><span>β₂ LOSS / STEP</span><strong id="betaDisplay">0</strong></div><div class="stat"><span>SA BLEACH / STEP</span><strong id="satDisplay">0</strong></div></div></section>
+<div class="chartgrid"><section class="panel"><h2>CW laser pulses</h2><canvas class="scope" id="pumpTrace" width="720" height="140"></canvas></section><section class="panel"><h2>Cavity</h2><canvas class="scope" id="optTrace" width="720" height="140"></canvas></section>
+<section class="panel"><h2>Optical output</h2><canvas class="scope" id="portTrace" width="720" height="140"></canvas></section><section class="panel"><h2>Resonator modes</h2><canvas class="scope" id="spectrum" width="720" height="140"></canvas></section><section class="panel"><h2>Audio waveform</h2><canvas class="scope" id="audioTrace" width="720" height="140"></canvas></section></div>
+<section class="panel transport"><div class="between"><h2>Avril 14th</h2><span id="counter" class="small">0 / 488</span></div><div class="row"><button id="playSong" class="primary">▶ Play</button><button id="pause" class="secondary" disabled>Ⅱ Pause</button><button id="stop" class="secondary">■ Stop</button><strong class="small" id="clock">0:00 / 1:54</strong></div><input id="songPos" type="range" min="0" max="113.85" step=".05" value="0"><span id="message" class="small"></span></section>
+</div><div class="col"><section class="panel"><div class="between"><h2>Nonlinear effects</h2><select id="preset" style="padding:7px;border:1px solid #d6e6eb;border-radius:7px;color:#457688"><option value="">Presets</option><option value="linear">Linear</option><option value="kerr">Kerr</option><option value="fwm">FWM</option><option value="thg">THG</option><option value="shg">SHG</option><option value="sfg">SFG / DFG</option><option value="pdc">PDC</option><option value="saturable">Saturable</option><option value="absorption">Absorption</option><option value="full">All effects</option></select></div><div class="presets"><button data-preset="linear">Linear</button><button data-preset="kerr">Kerr</button><button data-preset="fwm">FWM</button><button data-preset="shg">SHG</button><button data-preset="sfg">SFG/DFG</button><button data-preset="pdc">PDC</button><button data-preset="saturable">Saturable</button><button data-preset="full">All</button></div><div class="divider"></div><div class="ctrl"><label for="material">Material</label><select id="material" data-opt="material"><option value="linear">Linear</option><option value="chi3">χ³</option><option value="chi2">χ²</option><option value="both">χ² + χ³</option></select></div></section>
+<section class="panel"><h2>χ³ · Kerr / FWM / THG</h2><div class="ctrlgrid"><div class="ctrl"><label for="chi3Process">χ³ effect</label><select id="chi3Process" data-opt="chi3Process"><option value="all">All χ³</option><option value="spm">Kerr / SPM / XPM</option><option value="fwm">Four-wave mixing</option><option value="thg">Third harmonic</option></select></div><div class="ctrl"><label for="chi3Log">χ³ strength · log₁₀<output id="chi3LogVal"></output></label><input id="chi3Log" data-opt="chi3Log" type="range" min="-3" max="3" step=".05" ></div><div class="ctrl"><label for="n2">n₂ · 10⁻¹³ m²/W<output id="n2Val"></output></label><input id="n2" data-opt="n2" type="range" min="-5" max="5" step=".05" ></div><div class="ctrl"><label for="betaLog">β₂ scale · log₁₀<output id="betaLogVal"></output></label><input id="betaLog" data-opt="betaLog" type="range" min="-3" max="4" step=".05" ></div><div class="ctrl"><label for="beta">β₂ · 10⁻¹² m/W<output id="betaVal"></output></label><input id="beta" data-opt="beta" type="range" min="0" max="50" step=".25" ></div></div></section>
+<section class="panel"><h2>χ² · 3-wave mixing</h2><div class="ctrlgrid"><div class="ctrl"><label for="chi2Process">χ² effect</label><select id="chi2Process" data-opt="chi2Process"><option value="all">All χ²</option><option value="shg">Second harmonic / SHG</option><option value="sfg">Sum + difference / SFG·DFG</option><option value="pdc">Parametric down-conversion</option></select></div><div class="ctrl"><label for="chi2Log">χ² strength · log₁₀<output id="chi2LogVal"></output></label><input id="chi2Log" data-opt="chi2Log" type="range" min="-3" max="3" step=".05" ></div><div class="ctrl"><label for="phaseMismatch">ΔkL mismatch<output id="phaseMismatchVal"></output></label><input id="phaseMismatch" data-opt="phaseMismatch" type="range" min="-8" max="8" step=".05" ></div><div class="ctrl"><label for="pdcSeedLog">PDC seed · log₁₀<output id="pdcSeedLogVal"></output></label><input id="pdcSeedLog" data-opt="pdcSeedLog" type="range" min="-3" max="2" step=".05" ></div><div class="ctrl"><label for="polarizationAngle">Polarization angle<output id="polarizationAngleVal"></output></label><input id="polarizationAngle" data-opt="polarizationAngle" type="range" min="-90" max="90" step="1" ></div></div></section>
+<section class="panel"><h2>Absorption</h2><div class="ctrlgrid"><div class="ctrl checkbox"><label for="satOn">Saturable absorption</label><input type="checkbox" data-opt="satOn" id="satOn"></div><div class="ctrl"><label for="satDepthLog">Saturation depth · log₁₀<output id="satDepthLogVal"></output></label><input id="satDepthLog" data-opt="satDepthLog" type="range" min="-3" max="2" step=".05" ></div><div class="ctrl"><label for="satILog">Saturation intensity · log₁₀<output id="satILogVal"></output></label><input id="satILog" data-opt="satILog" type="range" min="-3" max="3" step=".05" ></div></div></section>
+<section class="panel"><h2>Wavelength conversion</h2><div class="ctrlgrid"><div class="ctrl"><label for="lambdaPump">Pump λ · nm<output id="lambdaPumpVal"></output></label><input id="lambdaPump" data-opt="lambdaPump" type="range" min="1200" max="1750" step="1" ></div><div class="ctrl"><label for="lambdaSignal">Signal λ · nm<output id="lambdaSignalVal"></output></label><input id="lambdaSignal" data-opt="lambdaSignal" type="range" min="1350" max="1750" step="1" ></div><div class="ctrl"><label for="chi2Signal">PDC signal λ · nm<output id="chi2SignalVal"></output></label><input id="chi2Signal" data-opt="chi2Signal" type="range" min="1850" max="5000" step="5" ></div></div><div id="lambdaInfo" style="margin-top:10px"></div></section>
+<section class="panel"><h2>Laser</h2><div class="ctrlgrid"><div class="ctrl"><label for="power">CW power<output id="powerVal"></output></label><input id="power" data-opt="power" type="range" min="0" max="38" step=".1" ></div><div class="ctrl"><label for="pulse">CW pulse<output id="pulseVal"></output></label><input id="pulse" data-opt="pulse" type="range" min="0.02" max="3" step=".02" ></div><div class="ctrl"><label for="laserTimeScale">Time stretch<output id="laserTimeScaleVal"></output></label><input id="laserTimeScale" data-opt="laserTimeScale" type="range" min="5" max="130" step="1" ></div><div class="ctrl"><label for="detune">Detuning<output id="detuneVal"></output></label><input id="detune" data-opt="detune" type="range" min="-5" max="5" step=".05" ></div><div class="ctrl"><label for="carrierTime">Carrier lifetime<output id="carrierTimeVal"></output></label><input id="carrierTime" data-opt="carrierTime" type="range" min="0.15" max="8" step=".05" ></div></div></section>
+<section class="panel"><h2>Resonators / output</h2><div class="ctrlgrid"><div class="ctrl"><label for="modes">Rings / note<output id="modesVal"></output></label><input id="modes" data-opt="modes" type="range" min="1" max="16" step="1" ></div><div class="ctrl"><label for="coupling">Coupling<output id="couplingVal"></output></label><input id="coupling" data-opt="coupling" type="range" min="0" max=".95" step=".01" ></div><div class="ctrl"><label for="lossScale">Modal loss<output id="lossScaleVal"></output></label><input id="lossScale" data-opt="lossScale" type="range" min=".08" max="5" step=".02" ></div><div class="ctrl"><label for="fitStrength">Mode fit<output id="fitStrengthVal"></output></label><input id="fitStrength" data-opt="fitStrength" type="range" min=".1" max="3" step=".05" ></div><div class="ctrl"><label for="volume">Volume<output id="volumeVal"></output></label><input id="volume" data-opt="volume" type="range" min="0" max="1" step=".01" ></div><div class="ctrl"><label for="speed">MIDI speed<output id="speedVal"></output></label><input id="speed" data-opt="speed" type="range" min=".45" max="1.8" step=".05" ></div><div class="ctrl"><label for="fdtdSteps">Yee updates<output id="fdtdStepsVal"></output></label><input id="fdtdSteps" data-opt="fdtdSteps" type="range" min="1" max="25" step="1" ></div><div class="ctrl"><label for="overlap">Modal overlap<output id="overlapVal"></output></label><input id="overlap" data-opt="overlap" type="range" min="0" max="100" step="1" ></div><div class="ctrl"><label for="coverage">Coverage<output id="coverageVal"></output></label><input id="coverage" data-opt="coverage" type="range" min="0" max="100" step="1" ></div></div></section></div></div>
+<section class="equations"><h2>Model equations</h2><div class="eqgrid"><div class="eqbox"><pre>
+Pₙₗ = ε₀ [ χ² E² + χ³ E³ ]
+
+∂ₜa = √P₍CW₎ − [γ(I,n) + iΔ(I,n)] a
+∂ₜn = −n/τ + |a|⁴
+
+γₛₐ(I) = γ₀ / (1 + I/Iₛₐ)
+γ(I,n) = γᵢ + γₛₐ(I) + γFCA(n) + β₂ I
+
+∂ₜzₖ = −(γₖ + iδₖ) zₖ + κₖ[a + η zₖ₋₁] + NLₖ
+s(t) = Re Σₖ zₖ(t) exp(i 2π fₖ t)
+</pre></div><div class="eqbox"><pre>
+χ²   · three-wave mixing
+SHG:      ω₂ = 2ω₁
+SFG / DFG: ω₃ = ω₁ ± ω₂
+PDC:      ωₚ = ωₛ + ωᵢ  (classically seeded)
+
+χ³   · four-wave mixing / Kerr
+SPM/XPM:  ∂ₜzₖ ∝ iγ (|zₖ|² + 2Σ|zⱼ|²)zₖ
+FWM:      2ωₚ = ωₛ + ωᵢ
+THG:      ω₃ = 3ω₁
+
+Waveguide: Δβ = βout − Σβin
+Conversion ∝ sinc(ΔβL/2)
+</pre></div></div><div class="eqnote">Normalized, time-scaled coupled-mode and Yee model · wavelength conversion is an effective classical multimode approximation · χ² requires a non-centrosymmetric / engineered material · PDC uses classical seeding, not quantum vacuum fluctuations.</div></section>
+</main><script>
+const MODEL={"meta":{"events":488,"song_end":113.84604,"observed_pitches":29,"note_range":[36,96],"source":"Avril 14th user supplied MIDI and stereo MP3","alignment_audio_t_approx":"0.41867015 + 0.98764314*MIDI_t","fit_warning":"spectral estimates from mixed MP3, not clean isolated piano notes"},"midi":[{"p":44,"s":0.0,"e":0.38461,"v":50},{"p":72,"s":0.0,"e":0.76923,"v":50},{"p":53,"s":0.38461,"e":0.76923,"v":50},{"p":56,"s":0.76923,"e":1.15384,"v":50},{"p":65,"s":0.76923,"e":1.53846,"v":50},{"p":60,"s":1.15384,"e":1.53846,"v":50},{"p":48,"s":1.53846,"e":1.92307,"v":50},{"p":68,"s":1.53846,"e":2.30769,"v":50},{"p":56,"s":1.92307,"e":2.30769,"v":50},{"p":60,"s":2.30769,"e":2.6923,"v":50},{"p":68,"s":2.6923,"e":2.88461,"v":50},{"p":63,"s":2.6923,"e":3.07692,"v":50},{"p":65,"s":2.88461,"e":4.23076,"v":50},{"p":49,"s":3.07692,"e":3.46153,"v":50},{"p":56,"s":3.46153,"e":3.84615,"v":50},{"p":61,"s":3.84615,"e":4.23076,"v":50},{"p":63,"s":4.23076,"e":4.61538,"v":50},{"p":65,"s":4.23076,"e":4.61538,"v":50},{"p":46,"s":4.61538,"e":4.99999,"v":50},{"p":75,"s":4.61538,"e":4.99999,"v":50},{"p":56,"s":4.99999,"e":5.38461,"v":50},{"p":73,"s":4.99999,"e":5.38461,"v":50},{"p":61,"s":5.38461,"e":5.76922,"v":50},{"p":72,"s":5.38461,"e":5.76922,"v":50},{"p":60,"s":5.76922,"e":6.15384,"v":50},{"p":68,"s":5.76922,"e":6.15384,"v":50},{"p":44,"s":6.15384,"e":6.53845,"v":50},{"p":72,"s":6.15384,"e":6.92307,"v":50},{"p":53,"s":6.53845,"e":6.92307,"v":50},{"p":56,"s":6.92307,"e":7.30768,"v":50},{"p":65,"s":6.92307,"e":7.6923,"v":50},{"p":60,"s":7.30768,"e":7.6923,"v":50},{"p":48,"s":7.6923,"e":8.07691,"v":50},{"p":68,"s":7.6923,"e":8.84614,"v":50},{"p":56,"s":8.07691,"e":8.46153,"v":50},{"p":60,"s":8.46153,"e":8.84614,"v":50},{"p":68,"s":8.84614,"e":9.03845,"v":50},{"p":63,"s":8.84614,"e":9.23076,"v":50},{"p":65,"s":9.03845,"e":10.3846,"v":50},{"p":49,"s":9.23076,"e":9.61537,"v":50},{"p":56,"s":9.61537,"e":9.99999,"v":50},{"p":61,"s":9.99999,"e":10.3846,"v":50},{"p":63,"s":10.3846,"e":10.76922,"v":50},{"p":65,"s":10.3846,"e":10.76922,"v":50},{"p":46,"s":10.76922,"e":11.15383,"v":50},{"p":75,"s":10.76922,"e":11.15383,"v":50},{"p":56,"s":11.15383,"e":11.53845,"v":50},{"p":73,"s":11.15383,"e":11.53845,"v":50},{"p":61,"s":11.53845,"e":11.92306,"v":50},{"p":72,"s":11.53845,"e":11.92306,"v":50},{"p":60,"s":11.92306,"e":12.30768,"v":50},{"p":68,"s":11.92306,"e":12.30768,"v":50},{"p":44,"s":12.30768,"e":12.69229,"v":50},{"p":84,"s":12.30768,"e":13.07691,"v":50},{"p":72,"s":12.30768,"e":13.07691,"v":50},{"p":53,"s":12.69229,"e":13.07691,"v":50},{"p":56,"s":13.07691,"e":13.46152,"v":50},{"p":77,"s":13.07691,"e":13.84614,"v":50},{"p":65,"s":13.07691,"e":13.84614,"v":50},{"p":60,"s":13.46152,"e":13.84614,"v":50},{"p":48,"s":13.84614,"e":14.23075,"v":50},{"p":80,"s":13.84614,"e":14.61537,"v":50},{"p":68,"s":13.84614,"e":14.61537,"v":50},{"p":56,"s":14.23075,"e":14.61537,"v":50},{"p":60,"s":14.61537,"e":14.99998,"v":50},{"p":80,"s":14.99998,"e":15.19229,"v":50},{"p":68,"s":14.99998,"e":15.19229,"v":50},{"p":63,"s":14.99998,"e":15.3846,"v":50},{"p":77,"s":15.19229,"e":18.46152,"v":50},{"p":65,"s":15.19229,"e":18.46152,"v":50},{"p":49,"s":15.3846,"e":15.76921,"v":50},{"p":56,"s":15.76921,"e":16.15383,"v":50},{"p":61,"s":16.15383,"e":16.53844,"v":50},{"p":63,"s":16.53844,"e":16.92306,"v":50},{"p":46,"s":16.92306,"e":17.30767,"v":50},{"p":56,"s":17.30767,"e":17.69229,"v":50},{"p":61,"s":17.69229,"e":18.0769,"v":50},{"p":60,"s":18.0769,"e":18.46152,"v":50},{"p":44,"s":18.46152,"e":18.84613,"v":50},{"p":84,"s":18.46152,"e":19.23075,"v":50},{"p":72,"s":18.46152,"e":19.23075,"v":50},{"p":53,"s":18.84613,"e":19.23075,"v":50},{"p":56,"s":19.23075,"e":19.61536,"v":50},{"p":77,"s":19.23075,"e":19.99998,"v":50},{"p":65,"s":19.23075,"e":19.99998,"v":50},{"p":60,"s":19.61536,"e":19.99998,"v":50},{"p":48,"s":19.99998,"e":20.38459,"v":50},{"p":80,"s":19.99998,"e":20.76921,"v":50},{"p":68,"s":19.99998,"e":20.76921,"v":50},{"p":56,"s":20.38459,"e":20.76921,"v":50},{"p":60,"s":20.76921,"e":21.15382,"v":50},{"p":80,"s":21.15382,"e":21.34613,"v":50},{"p":68,"s":21.15382,"e":21.34613,"v":50},{"p":63,"s":21.15382,"e":21.53844,"v":50},{"p":77,"s":21.34613,"e":24.61536,"v":50},{"p":65,"s":21.34613,"e":24.61536,"v":50},{"p":49,"s":21.53844,"e":21.92305,"v":50},{"p":56,"s":21.92305,"e":22.30767,"v":50},{"p":61,"s":22.30767,"e":22.69228,"v":50},{"p":63,"s":22.69228,"e":23.0769,"v":50},{"p":46,"s":23.0769,"e":23.46151,"v":50},{"p":56,"s":23.46151,"e":23.84613,"v":50},{"p":61,"s":23.84613,"e":24.23074,"v":50},{"p":60,"s":24.23074,"e":24.61536,"v":50},{"p":44,"s":24.61536,"e":24.99997,"v":50},{"p":60,"s":24.61536,"e":25.7692,"v":50},{"p":56,"s":24.99997,"e":25.38459,"v":50},{"p":53,"s":25.38459,"e":25.7692,"v":50},{"p":60,"s":25.7692,"e":25.96151,"v":50},{"p":51,"s":25.7692,"e":26.15382,"v":50},{"p":63,"s":25.96151,"e":27.30766,"v":50},{"p":39,"s":26.15382,"e":26.53843,"v":50},{"p":51,"s":26.53843,"e":26.92305,"v":50},{"p":53,"s":26.92305,"e":27.30766,"v":50},{"p":51,"s":27.30766,"e":27.69228,"v":50},{"p":60,"s":27.30766,"e":27.69228,"v":50},{"p":44,"s":27.69228,"e":28.07689,"v":50},{"p":60,"s":27.69228,"e":28.84612,"v":50},{"p":56,"s":28.07689,"e":28.46151,"v":50},{"p":53,"s":28.46151,"e":28.84612,"v":50},{"p":60,"s":28.84612,"e":29.03843,"v":50},{"p":51,"s":28.84612,"e":29.23074,"v":50},{"p":63,"s":29.03843,"e":29.23074,"v":50},{"p":37,"s":29.23074,"e":29.61535,"v":50},{"p":65,"s":29.23074,"e":30.38458,"v":50},{"p":49,"s":29.61535,"e":29.99997,"v":50},{"p":51,"s":29.99997,"e":30.38458,"v":50},{"p":49,"s":30.38458,"e":30.7692,"v":50},{"p":63,"s":30.38458,"e":30.7692,"v":50},{"p":44,"s":30.7692,"e":31.15381,"v":50},{"p":60,"s":30.7692,"e":31.92304,"v":50},{"p":56,"s":31.15381,"e":31.53843,"v":50},{"p":53,"s":31.53843,"e":31.92304,"v":50},{"p":60,"s":31.92304,"e":32.11535,"v":50},{"p":51,"s":31.92304,"e":32.30766,"v":50},{"p":63,"s":32.11535,"e":33.4615,"v":50},{"p":39,"s":32.30766,"e":32.69227,"v":50},{"p":51,"s":32.69227,"e":33.07689,"v":50},{"p":53,"s":33.07689,"e":33.4615,"v":50},{"p":51,"s":33.4615,"e":33.84612,"v":50},{"p":60,"s":33.4615,"e":33.84612,"v":50},{"p":44,"s":33.84612,"e":34.23073,"v":50},{"p":60,"s":33.84612,"e":34.99996,"v":50},{"p":56,"s":34.23073,"e":34.61535,"v":50},{"p":53,"s":34.61535,"e":34.99996,"v":50},{"p":60,"s":34.99996,"e":35.19227,"v":50},{"p":51,"s":34.99996,"e":35.38458,"v":50},{"p":63,"s":35.19227,"e":35.38458,"v":50},{"p":37,"s":35.38458,"e":35.76919,"v":50},{"p":65,"s":35.38458,"e":36.53842,"v":50},{"p":49,"s":35.76919,"e":36.15381,"v":50},{"p":51,"s":36.15381,"e":36.53842,"v":50},{"p":49,"s":36.53842,"e":36.92304,"v":50},{"p":63,"s":36.53842,"e":36.92304,"v":50},{"p":44,"s":36.92304,"e":37.30765,"v":50},{"p":60,"s":36.92304,"e":38.07688,"v":50},{"p":56,"s":37.30765,"e":37.69227,"v":50},{"p":53,"s":37.69227,"e":38.07688,"v":50},{"p":60,"s":38.07688,"e":38.26919,"v":50},{"p":51,"s":38.07688,"e":38.4615,"v":50},{"p":63,"s":38.26919,"e":39.61534,"v":50},{"p":39,"s":38.4615,"e":38.84611,"v":50},{"p":51,"s":38.84611,"e":39.23073,"v":50},{"p":53,"s":39.23073,"e":39.61534,"v":50},{"p":51,"s":39.61534,"e":39.99996,"v":50},{"p":60,"s":39.61534,"e":39.99996,"v":50},{"p":44,"s":39.99996,"e":40.38457,"v":50},{"p":60,"s":39.99996,"e":41.1538,"v":50},{"p":56,"s":40.38457,"e":40.76919,"v":50},{"p":53,"s":40.76919,"e":41.1538,"v":50},{"p":60,"s":41.1538,"e":41.34611,"v":50},{"p":51,"s":41.1538,"e":41.53842,"v":50},{"p":63,"s":41.34611,"e":41.53842,"v":50},{"p":37,"s":41.53842,"e":41.92303,"v":50},{"p":65,"s":41.53842,"e":42.69226,"v":50},{"p":49,"s":41.92303,"e":42.30765,"v":50},{"p":51,"s":42.30765,"e":42.69226,"v":50},{"p":49,"s":42.69226,"e":43.07688,"v":50},{"p":63,"s":42.69226,"e":43.07688,"v":50},{"p":44,"s":43.07688,"e":43.46149,"v":50},{"p":60,"s":43.07688,"e":44.23072,"v":50},{"p":56,"s":43.46149,"e":43.84611,"v":50},{"p":53,"s":43.84611,"e":44.23072,"v":50},{"p":60,"s":44.23072,"e":44.42303,"v":50},{"p":51,"s":44.23072,"e":44.61534,"v":50},{"p":63,"s":44.42303,"e":45.76918,"v":50},{"p":39,"s":44.61534,"e":44.99995,"v":50},{"p":51,"s":44.99995,"e":45.38457,"v":50},{"p":53,"s":45.38457,"e":45.76918,"v":50},{"p":51,"s":45.76918,"e":46.1538,"v":50},{"p":60,"s":45.76918,"e":46.1538,"v":50},{"p":44,"s":46.1538,"e":46.53841,"v":50},{"p":60,"s":46.1538,"e":47.30764,"v":50},{"p":56,"s":46.53841,"e":46.92303,"v":50},{"p":53,"s":46.92303,"e":47.30764,"v":50},{"p":60,"s":47.30764,"e":47.49995,"v":50},{"p":51,"s":47.30764,"e":47.69226,"v":50},{"p":63,"s":47.49995,"e":47.69226,"v":50},{"p":37,"s":47.69226,"e":48.07687,"v":50},{"p":65,"s":47.69226,"e":48.8461,"v":50},{"p":49,"s":48.07687,"e":48.46149,"v":50},{"p":51,"s":48.46149,"e":48.8461,"v":50},{"p":49,"s":48.8461,"e":49.23072,"v":50},{"p":63,"s":48.8461,"e":49.23072,"v":50},{"p":46,"s":49.23072,"e":49.61533,"v":50},{"p":58,"s":49.61533,"e":49.99995,"v":50},{"p":65,"s":49.61533,"e":49.99995,"v":50},{"p":60,"s":49.99995,"e":50.38456,"v":50},{"p":67,"s":49.99995,"e":50.38456,"v":50},{"p":68,"s":50.38456,"e":50.76918,"v":50},{"p":51,"s":50.38456,"e":51.15379,"v":50},{"p":72,"s":50.76918,"e":51.15379,"v":50},{"p":60,"s":51.15379,"e":51.3461,"v":50},{"p":67,"s":51.15379,"e":52.30764,"v":50},{"p":58,"s":51.3461,"e":51.73072,"v":50},{"p":53,"s":51.73072,"e":52.30764,"v":50},{"p":46,"s":52.30764,"e":52.69225,"v":50},{"p":58,"s":52.69225,"e":53.07687,"v":50},{"p":65,"s":52.69225,"e":53.07687,"v":50},{"p":60,"s":53.07687,"e":53.46148,"v":50},{"p":67,"s":53.07687,"e":53.46148,"v":50},{"p":68,"s":53.46148,"e":53.8461,"v":50},{"p":51,"s":53.46148,"e":54.03841,"v":50},{"p":72,"s":53.8461,"e":54.23071,"v":50},{"p":60,"s":54.03841,"e":54.42302,"v":50},{"p":67,"s":54.23071,"e":54.61533,"v":50},{"p":58,"s":54.42302,"e":54.80764,"v":50},{"p":65,"s":54.61533,"e":55.38456,"v":50},{"p":60,"s":54.80764,"e":55.38456,"v":50},{"p":46,"s":55.38456,"e":55.76917,"v":50},{"p":58,"s":55.76917,"e":56.15379,"v":50},{"p":65,"s":55.76917,"e":56.15379,"v":50},{"p":60,"s":56.15379,"e":56.5384,"v":50},{"p":67,"s":56.15379,"e":56.5384,"v":50},{"p":68,"s":56.5384,"e":56.92302,"v":50},{"p":63,"s":56.5384,"e":57.30763,"v":50},{"p":72,"s":56.92302,"e":57.30763,"v":50},{"p":60,"s":57.30763,"e":57.49994,"v":50},{"p":67,"s":57.30763,"e":58.46148,"v":50},{"p":58,"s":57.49994,"e":57.69225,"v":50},{"p":51,"s":57.69225,"e":58.07686,"v":50},{"p":53,"s":58.07686,"e":58.46148,"v":50},{"p":46,"s":58.46148,"e":58.84609,"v":50},{"p":58,"s":58.84609,"e":59.23071,"v":50},{"p":65,"s":58.84609,"e":59.23071,"v":50},{"p":60,"s":59.23071,"e":59.61532,"v":50},{"p":67,"s":59.23071,"e":59.61532,"v":50},{"p":68,"s":59.61532,"e":59.99994,"v":50},{"p":51,"s":59.61532,"e":60.19225,"v":50},{"p":72,"s":59.99994,"e":60.57686,"v":50},{"p":60,"s":60.19225,"e":60.57686,"v":50},{"p":58,"s":60.57686,"e":60.76917,"v":50},{"p":67,"s":60.57686,"e":60.96148,"v":50},{"p":60,"s":60.76917,"e":61.5384,"v":50},{"p":65,"s":60.96148,"e":61.5384,"v":50},{"p":44,"s":61.5384,"e":61.92301,"v":50},{"p":72,"s":61.5384,"e":62.30763,"v":50},{"p":53,"s":61.92301,"e":62.30763,"v":50},{"p":56,"s":62.30763,"e":62.69224,"v":50},{"p":65,"s":62.30763,"e":63.07686,"v":50},{"p":60,"s":62.69224,"e":63.07686,"v":50},{"p":48,"s":63.07686,"e":63.46147,"v":50},{"p":68,"s":63.07686,"e":63.84609,"v":50},{"p":56,"s":63.46147,"e":63.84609,"v":50},{"p":60,"s":63.84609,"e":64.2307,"v":50},{"p":68,"s":64.2307,"e":64.42301,"v":50},{"p":63,"s":64.2307,"e":64.61532,"v":50},{"p":65,"s":64.42301,"e":65.76916,"v":50},{"p":49,"s":64.61532,"e":64.99993,"v":50},{"p":56,"s":64.99993,"e":65.38455,"v":50},{"p":61,"s":65.38455,"e":65.76916,"v":50},{"p":63,"s":65.76916,"e":66.15378,"v":50},{"p":65,"s":65.76916,"e":66.15378,"v":50},{"p":46,"s":66.15378,"e":66.53839,"v":50},{"p":75,"s":66.15378,"e":66.53839,"v":50},{"p":56,"s":66.53839,"e":66.92301,"v":50},{"p":73,"s":66.53839,"e":66.92301,"v":50},{"p":61,"s":66.92301,"e":67.30762,"v":50},{"p":72,"s":66.92301,"e":67.30762,"v":50},{"p":60,"s":67.30762,"e":67.69224,"v":50},{"p":68,"s":67.30762,"e":67.69224,"v":50},{"p":44,"s":67.69224,"e":68.07685,"v":50},{"p":72,"s":67.69224,"e":68.46147,"v":50},{"p":53,"s":68.07685,"e":68.46147,"v":50},{"p":56,"s":68.46147,"e":68.84608,"v":50},{"p":65,"s":68.46147,"e":69.2307,"v":50},{"p":60,"s":68.84608,"e":69.2307,"v":50},{"p":48,"s":69.2307,"e":69.61531,"v":50},{"p":68,"s":69.2307,"e":70.38454,"v":50},{"p":56,"s":69.61531,"e":69.99993,"v":50},{"p":60,"s":69.99993,"e":70.38454,"v":50},{"p":68,"s":70.38454,"e":70.57685,"v":50},{"p":63,"s":70.38454,"e":70.76916,"v":50},{"p":65,"s":70.57685,"e":71.923,"v":50},{"p":49,"s":70.76916,"e":71.15377,"v":50},{"p":56,"s":71.15377,"e":71.53839,"v":50},{"p":61,"s":71.53839,"e":71.923,"v":50},{"p":63,"s":71.923,"e":72.30762,"v":50},{"p":65,"s":71.923,"e":72.30762,"v":50},{"p":46,"s":72.30762,"e":72.69223,"v":50},{"p":75,"s":72.30762,"e":72.69223,"v":50},{"p":56,"s":72.69223,"e":73.07685,"v":50},{"p":73,"s":72.69223,"e":73.07685,"v":50},{"p":61,"s":73.07685,"e":73.46146,"v":50},{"p":72,"s":73.07685,"e":73.46146,"v":50},{"p":60,"s":73.46146,"e":73.84608,"v":50},{"p":68,"s":73.46146,"e":73.84608,"v":50},{"p":44,"s":73.84608,"e":74.23069,"v":50},{"p":84,"s":73.84608,"e":74.61531,"v":50},{"p":72,"s":73.84608,"e":74.61531,"v":50},{"p":53,"s":74.23069,"e":74.61531,"v":50},{"p":56,"s":74.61531,"e":74.99992,"v":50},{"p":77,"s":74.61531,"e":75.38454,"v":50},{"p":65,"s":74.61531,"e":75.38454,"v":50},{"p":60,"s":74.99992,"e":75.38454,"v":50},{"p":48,"s":75.38454,"e":75.76915,"v":50},{"p":80,"s":75.38454,"e":76.15377,"v":50},{"p":68,"s":75.38454,"e":76.15377,"v":50},{"p":56,"s":75.76915,"e":76.15377,"v":50},{"p":60,"s":76.15377,"e":76.53838,"v":50},{"p":80,"s":76.53838,"e":76.73069,"v":50},{"p":68,"s":76.53838,"e":76.73069,"v":50},{"p":63,"s":76.53838,"e":76.923,"v":50},{"p":77,"s":76.73069,"e":78.07684,"v":50},{"p":65,"s":76.73069,"e":78.07684,"v":50},{"p":49,"s":76.923,"e":77.30761,"v":50},{"p":56,"s":77.30761,"e":77.69223,"v":50},{"p":61,"s":77.69223,"e":78.07684,"v":50},{"p":63,"s":78.07684,"e":78.46146,"v":50},{"p":77,"s":78.07684,"e":78.46146,"v":50},{"p":65,"s":78.07684,"e":78.46146,"v":50},{"p":46,"s":78.46146,"e":78.84607,"v":50},{"p":87,"s":78.46146,"e":78.84607,"v":50},{"p":75,"s":78.46146,"e":78.84607,"v":50},{"p":56,"s":78.84607,"e":79.23069,"v":50},{"p":85,"s":78.84607,"e":79.23069,"v":50},{"p":73,"s":78.84607,"e":79.23069,"v":50},{"p":61,"s":79.23069,"e":79.6153,"v":50},{"p":84,"s":79.23069,"e":79.6153,"v":50},{"p":72,"s":79.23069,"e":79.6153,"v":50},{"p":60,"s":79.6153,"e":79.99992,"v":50},{"p":80,"s":79.6153,"e":79.99992,"v":50},{"p":68,"s":79.6153,"e":79.99992,"v":50},{"p":44,"s":79.99992,"e":80.38453,"v":50},{"p":84,"s":79.99992,"e":80.76915,"v":50},{"p":72,"s":79.99992,"e":80.76915,"v":50},{"p":53,"s":80.38453,"e":80.76915,"v":50},{"p":56,"s":80.76915,"e":81.15376,"v":50},{"p":77,"s":80.76915,"e":81.53838,"v":50},{"p":65,"s":80.76915,"e":81.53838,"v":50},{"p":60,"s":81.15376,"e":81.53838,"v":50},{"p":48,"s":81.53838,"e":81.92299,"v":50},{"p":80,"s":81.53838,"e":82.69222,"v":50},{"p":68,"s":81.53838,"e":82.69222,"v":50},{"p":56,"s":81.92299,"e":82.30761,"v":50},{"p":60,"s":82.30761,"e":82.69222,"v":50},{"p":80,"s":82.69222,"e":82.88453,"v":50},{"p":68,"s":82.69222,"e":82.88453,"v":50},{"p":63,"s":82.69222,"e":83.07684,"v":50},{"p":77,"s":82.88453,"e":84.23068,"v":50},{"p":65,"s":82.88453,"e":84.23068,"v":50},{"p":49,"s":83.07684,"e":83.46145,"v":50},{"p":56,"s":83.46145,"e":83.84607,"v":50},{"p":61,"s":83.84607,"e":84.23068,"v":50},{"p":63,"s":84.23068,"e":84.6153,"v":50},{"p":77,"s":84.23068,"e":84.6153,"v":50},{"p":65,"s":84.23068,"e":84.6153,"v":50},{"p":46,"s":84.6153,"e":84.99991,"v":50},{"p":87,"s":84.6153,"e":84.99991,"v":50},{"p":75,"s":84.6153,"e":84.99991,"v":50},{"p":56,"s":84.99991,"e":85.38453,"v":50},{"p":85,"s":84.99991,"e":85.38453,"v":50},{"p":73,"s":84.99991,"e":85.38453,"v":50},{"p":61,"s":85.38453,"e":85.76914,"v":50},{"p":84,"s":85.38453,"e":85.76914,"v":50},{"p":72,"s":85.38453,"e":85.76914,"v":50},{"p":60,"s":85.76914,"e":86.15376,"v":50},{"p":80,"s":85.76914,"e":86.15376,"v":50},{"p":68,"s":85.76914,"e":86.15376,"v":50},{"p":72,"s":86.15376,"e":87.49991,"v":50},{"p":53,"s":86.15376,"e":87.69222,"v":50},{"p":49,"s":86.15376,"e":87.69222,"v":50},{"p":70,"s":87.49991,"e":87.69222,"v":50},{"p":72,"s":87.69222,"e":89.03837,"v":50},{"p":49,"s":87.69222,"e":89.23068,"v":50},{"p":53,"s":87.69222,"e":89.23068,"v":50},{"p":46,"s":87.69222,"e":89.23068,"v":50},{"p":72,"s":89.03837,"e":89.23068,"v":50},{"p":75,"s":89.23068,"e":89.42299,"v":50},{"p":48,"s":89.23068,"e":90.76914,"v":50},{"p":56,"s":89.23068,"e":90.76914,"v":50},{"p":77,"s":89.42299,"e":89.61529,"v":50},{"p":75,"s":89.61529,"e":89.99991,"v":50},{"p":72,"s":89.99991,"e":91.53837,"v":50},{"p":49,"s":90.76914,"e":92.3076,"v":50},{"p":44,"s":90.76914,"e":92.3076,"v":50},{"p":56,"s":90.76914,"e":92.3076,"v":50},{"p":75,"s":91.53837,"e":92.3076,"v":50},{"p":72,"s":92.3076,"e":93.65375,"v":50},{"p":56,"s":92.3076,"e":93.84606,"v":50},{"p":41,"s":92.3076,"e":93.84606,"v":50},{"p":70,"s":93.65375,"e":93.84606,"v":50},{"p":68,"s":93.84606,"e":95.19221,"v":50},{"p":46,"s":93.84606,"e":95.38452,"v":50},{"p":60,"s":93.84606,"e":95.38452,"v":50},{"p":39,"s":93.84606,"e":95.38452,"v":50},{"p":72,"s":95.19221,"e":95.38452,"v":50},{"p":75,"s":95.38452,"e":95.57683,"v":50},{"p":60,"s":95.38452,"e":96.92298,"v":50},{"p":44,"s":95.38452,"e":96.92298,"v":50},{"p":77,"s":95.57683,"e":95.76913,"v":50},{"p":65,"s":95.76913,"e":96.15375,"v":50},{"p":72,"s":96.15375,"e":96.92298,"v":50},{"p":65,"s":96.92298,"e":97.69221,"v":50},{"p":44,"s":96.92298,"e":98.46144,"v":50},{"p":56,"s":96.92298,"e":98.46144,"v":50},{"p":37,"s":96.92298,"e":98.46144,"v":50},{"p":68,"s":97.69221,"e":98.46144,"v":50},{"p":41,"s":98.46144,"e":98.84605,"v":50},{"p":72,"s":98.46144,"e":99.80759,"v":50},{"p":84,"s":98.65375,"e":99.9999,"v":50},{"p":53,"s":98.84605,"e":99.23067,"v":50},{"p":56,"s":99.23067,"e":99.61528,"v":50},{"p":58,"s":99.61528,"e":99.9999,"v":50},{"p":70,"s":99.80759,"e":99.9999,"v":50},{"p":48,"s":99.9999,"e":100.38451,"v":50},{"p":72,"s":99.9999,"e":101.34605,"v":50},{"p":84,"s":100.19221,"e":101.34605,"v":50},{"p":56,"s":100.38451,"e":100.76913,"v":50},{"p":58,"s":100.76913,"e":101.15374,"v":50},{"p":63,"s":101.15374,"e":101.53836,"v":50},{"p":84,"s":101.34605,"e":101.53836,"v":50},{"p":72,"s":101.34605,"e":101.53836,"v":50},{"p":87,"s":101.53836,"e":101.73067,"v":50},{"p":75,"s":101.53836,"e":101.73067,"v":50},{"p":49,"s":101.53836,"e":101.92297,"v":50},{"p":89,"s":101.73067,"e":101.92297,"v":50},{"p":77,"s":101.73067,"e":101.92297,"v":50},{"p":87,"s":101.92297,"e":102.11528,"v":50},{"p":56,"s":101.92297,"e":102.30759,"v":50},{"p":75,"s":101.92297,"e":102.30759,"v":50},{"p":87,"s":102.11528,"e":102.6922,"v":50},{"p":60,"s":102.30759,"e":102.6922,"v":50},{"p":72,"s":102.30759,"e":103.84605,"v":50},{"p":65,"s":102.6922,"e":103.07682,"v":50},{"p":84,"s":102.6922,"e":103.84605,"v":50},{"p":46,"s":103.07682,"e":103.46143,"v":50},{"p":56,"s":103.46143,"e":103.84605,"v":50},{"p":61,"s":103.84605,"e":104.23066,"v":50},{"p":87,"s":103.84605,"e":104.61528,"v":50},{"p":75,"s":103.84605,"e":104.61528,"v":50},{"p":68,"s":104.23066,"e":104.61528,"v":50},{"p":60,"s":104.61528,"e":104.99989,"v":50},{"p":72,"s":104.61528,"e":105.96143,"v":50},{"p":92,"s":104.80759,"e":105.38451,"v":50},{"p":56,"s":104.99989,"e":105.38451,"v":50},{"p":53,"s":105.38451,"e":105.76912,"v":50},{"p":89,"s":105.38451,"e":106.15374,"v":50},{"p":49,"s":105.76912,"e":106.15374,"v":50},{"p":70,"s":105.96143,"e":106.15374,"v":50},{"p":48,"s":106.15374,"e":106.53835,"v":50},{"p":82,"s":106.15374,"e":107.11528,"v":50},{"p":68,"s":106.15374,"e":107.49989,"v":50},{"p":56,"s":106.53835,"e":106.92297,"v":50},{"p":60,"s":106.92297,"e":107.30758,"v":50},{"p":77,"s":107.11528,"e":107.49989,"v":50},{"p":63,"s":107.30758,"e":107.6922,"v":50},{"p":84,"s":107.49989,"e":107.6922,"v":50},{"p":72,"s":107.49989,"e":107.6922,"v":50},{"p":87,"s":107.6922,"e":107.88451,"v":50},{"p":75,"s":107.6922,"e":107.88451,"v":50},{"p":53,"s":107.6922,"e":108.07681,"v":50},{"p":46,"s":107.6922,"e":108.07681,"v":50},{"p":89,"s":107.88451,"e":108.07681,"v":50},{"p":77,"s":107.88451,"e":108.07681,"v":50},{"p":56,"s":108.07681,"e":108.46143,"v":50},{"p":77,"s":108.07681,"e":108.65374,"v":50},{"p":65,"s":108.07681,"e":109.23066,"v":50},{"p":60,"s":108.46143,"e":108.84604,"v":50},{"p":84,"s":108.65374,"e":109.99989,"v":50},{"p":65,"s":108.84604,"e":109.23066,"v":50},{"p":44,"s":109.23066,"e":109.61527,"v":50},{"p":56,"s":109.61527,"e":109.99989,"v":50},{"p":75,"s":109.99989,"e":110.1922,"v":50},{"p":68,"s":109.99989,"e":110.3845,"v":50},{"p":75,"s":110.1922,"e":110.3845,"v":50},{"p":60,"s":110.3845,"e":113.84604,"v":50},{"p":75,"s":110.3845,"e":113.84604,"v":50}],"profiles":{"36":{"pitch":36,"name":"C2","f0":65.406,"B":8.152e-05,"partial_amplitudes":[0.011099,0.613572,0.240953,0.311978,0.657566,0.147247,0.072249,0.015239,0.020498,0.072994,0.018983,0.034138,0.023372,0.005845,0.024934,0.003798],"freqs":[65.409,130.834,196.291,261.796,327.365,393.014,458.758,524.614,590.598,656.724,723.01,789.47,856.12,922.975,990.052,1057.365],"decay":0.2,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"37":{"pitch":37,"name":"C#2","f0":69.296,"B":8.425e-05,"partial_amplitudes":[0.011099,0.613572,0.240953,0.311978,0.657566,0.147247,0.072249,0.015239,0.020498,0.072994,0.018983,0.034138,0.023372,0.005845,0.024934,0.003798],"freqs":[69.299,138.615,207.966,277.369,346.843,416.404,486.07,555.858,625.785,695.87,766.128,836.577,907.234,978.116,1049.241,1120.623],"decay":0.2,"observations":5,"reference_s":96.1439864553572,"status":"source-labelled, spectral estimate from polyphonic recording"},"38":{"pitch":38,"name":"D2","f0":73.416,"B":8.708e-05,"partial_amplitudes":[0.034046,0.597464,0.368921,0.402297,0.534427,0.194468,0.069672,0.051578,0.032811,0.088824,0.035362,0.024231,0.036767,0.020178,0.020466,0.002453],"freqs":[73.419,146.858,220.335,293.869,367.48,441.187,515.009,588.964,663.072,737.351,811.821,886.501,961.407,1036.561,1111.979,1187.68],"decay":0.5718,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"39":{"pitch":39,"name":"D#2","f0":77.782,"B":9e-05,"partial_amplitudes":[0.055454,0.554342,0.480208,0.474426,0.387123,0.232896,0.063945,0.085585,0.04364,0.100638,0.050143,0.013228,0.0485,0.033599,0.015072,0.000997],"freqs":[77.785,155.591,233.44,311.351,389.346,467.446,545.671,624.043,702.583,781.31,860.245,939.41,1018.824,1098.507,1178.48,1258.763],"decay":0.9437,"observations":5,"reference_s":93.1050875250284,"status":"source-labelled, spectral estimate from polyphonic recording"},"40":{"pitch":40,"name":"E2","f0":82.407,"B":9.302e-05,"partial_amplitudes":[0.058094,0.498738,0.479778,0.449044,0.275683,0.47123,0.072474,0.077883,0.027279,0.061595,0.028254,0.014614,0.026277,0.019315,0.008146,0.000802],"freqs":[82.411,164.844,247.324,329.873,412.513,495.269,578.161,661.215,744.451,827.893,911.563,995.484,1079.677,1164.166,1248.972,1334.117],"decay":0.8941,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"41":{"pitch":41,"name":"F2","f0":87.307,"B":9.614e-05,"partial_amplitudes":[0.056313,0.405172,0.44283,0.389483,0.14326,0.673695,0.075486,0.064252,0.008842,0.017864,0.004214,0.014888,0.002054,0.00356,0.0006,0.000546],"freqs":[87.311,174.648,262.034,349.497,437.06,524.748,612.587,700.602,788.817,877.257,965.948,1054.912,1144.175,1233.761,1323.695,1413.999],"decay":0.8445,"observations":2,"reference_s":91.58563805986398,"status":"source-labelled, spectral estimate from polyphonic recording"},"42":{"pitch":42,"name":"F#2","f0":92.499,"B":9.937e-05,"partial_amplitudes":[0.244313,0.393854,0.539956,0.345272,0.23879,0.556529,0.05946,0.056138,0.007831,0.026763,0.007088,0.011938,0.002945,0.003139,0.001941,0.000411],"freqs":[92.503,185.034,277.62,370.288,463.067,555.983,649.065,742.338,835.831,929.57,1023.583,1117.896,1212.537,1307.53,1402.904,1498.683],"decay":0.8213,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"43":{"pitch":43,"name":"G2","f0":97.999,"B":0.0001027,"partial_amplitudes":[0.427877,0.350624,0.602203,0.270385,0.323036,0.386302,0.037488,0.042963,0.006124,0.034256,0.00963,0.007816,0.003675,0.002438,0.003234,0.000234],"freqs":[98.004,196.038,294.132,392.317,490.623,589.079,687.716,786.563,885.651,985.008,1084.665,1184.65,1284.994,1385.724,1486.87,1588.461],"decay":0.7982,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"44":{"pitch":44,"name":"G#2","f0":103.826,"B":0.00010615,"partial_amplitudes":[0.566799,0.28495,0.615938,0.181224,0.377546,0.200299,0.014384,0.027613,0.004095,0.0387,0.011284,0.003424,0.004083,0.00161,0.004197,5.2e-05],"freqs":[103.832,207.696,311.627,415.657,519.819,624.146,728.671,833.426,938.444,1043.758,1149.399,1255.4,1361.793,1468.609,1575.881,1683.639],"decay":0.775,"observations":20,"reference_s":94.6245369901928,"status":"source-labelled, spectral estimate from polyphonic recording"},"45":{"pitch":45,"name":"A2","f0":110.0,"B":0.00010971,"partial_amplitudes":[0.4134,0.386622,0.723276,0.26508,0.219236,0.178469,0.066721,0.019928,0.013411,0.033854,0.008795,0.004377,0.005466,0.00273,0.002187,0.0001],"freqs":[110.006,220.048,330.163,440.386,550.754,661.302,772.067,883.084,994.389,1106.018,1218.005,1330.386,1443.196,1556.47,1670.241,1784.545],"decay":0.8589,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"46":{"pitch":46,"name":"A#2","f0":116.541,"B":0.00011339,"partial_amplitudes":[0.226563,0.457023,0.772112,0.327496,0.043194,0.142203,0.113662,0.010631,0.021642,0.026269,0.005595,0.004976,0.006406,0.00363,0.0,0.000139],"freqs":[116.548,233.135,349.801,466.586,583.53,700.671,818.05,935.704,1053.674,1171.998,1290.715,1409.863,1529.48,1649.604,1770.274,1891.526],"decay":0.9428,"observations":16,"reference_s":87.02728966437078,"status":"source-labelled, spectral estimate from polyphonic recording"},"47":{"pitch":47,"name":"B2","f0":123.471,"B":0.0001172,"partial_amplitudes":[0.510348,0.400229,0.68358,0.298505,0.036258,0.108699,0.095239,0.016109,0.012726,0.014928,0.009529,0.003723,0.003951,0.003206,8e-05,0.000194],"freqs":[123.478,247.0,370.608,494.346,618.258,742.386,866.774,991.464,1116.499,1241.922,1367.775,1494.1,1620.939,1748.332,1876.323,2004.95],"decay":0.8184,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"48":{"pitch":48,"name":"C3","f0":130.813,"B":0.00012113,"partial_amplitudes":[0.746054,0.305729,0.530647,0.241391,0.025907,0.064954,0.067843,0.020069,0.002612,0.002181,0.012566,0.00212,0.001124,0.00248,0.000152,0.000231],"freqs":[130.821,261.689,392.652,523.758,655.054,786.586,918.403,1050.551,1183.077,1316.027,1449.447,1583.385,1717.884,1852.991,1988.751,2125.208],"decay":0.694,"observations":11,"reference_s":88.54673912953518,"status":"source-labelled, spectral estimate from polyphonic recording"},"49":{"pitch":49,"name":"C#3","f0":138.591,"B":0.0001252,"partial_amplitudes":[0.839539,0.451893,0.281951,0.072564,0.069346,0.032385,0.016027,0.004048,0.006006,0.005193,0.002311,0.00216,0.000431,0.000432,0.000484,0.000142],"freqs":[138.6,277.252,416.008,554.92,694.04,833.42,973.11,1113.164,1253.63,1394.562,1536.008,1678.02,1820.647,1963.94,2107.946,2252.716],"decay":0.5834,"observations":21,"reference_s":90.06618859469958,"status":"source-labelled, spectral estimate from polyphonic recording"},"50":{"pitch":50,"name":"D3","f0":146.832,"B":0.0001294,"partial_amplitudes":[0.76697,0.558615,0.272758,0.121331,0.070894,0.072489,0.012901,0.006999,0.005309,0.007023,0.002957,0.002469,0.000406,0.000373,0.000406,0.000165],"freqs":[146.842,293.741,440.754,587.937,735.348,883.044,1031.08,1179.513,1328.399,1477.793,1627.751,1778.329,1929.579,2081.558,2234.318,2387.913],"decay":1.0646,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"51":{"pitch":51,"name":"D#3","f0":155.563,"B":0.00013374,"partial_amplitudes":[0.678484,0.653744,0.257905,0.16758,0.070971,0.111088,0.009508,0.009804,0.004501,0.008708,0.003541,0.002726,0.000373,0.000306,0.00032,0.000185],"freqs":[155.574,311.21,466.971,622.919,779.117,935.625,1092.507,1249.823,1407.634,1566.003,1724.989,1884.652,2045.052,2206.249,2368.301,2531.266],"decay":1.5457,"observations":24,"reference_s":47.14174120380529,"status":"source-labelled, spectral estimate from polyphonic recording"},"52":{"pitch":52,"name":"E3","f0":164.814,"B":0.00013823,"partial_amplitudes":[0.653021,0.659687,0.328284,0.153197,0.048546,0.065218,0.016547,0.013738,0.005101,0.005388,0.0024,0.001804,0.000705,0.00047,0.000255,0.000157],"freqs":[164.825,329.719,494.749,659.984,825.492,991.34,1157.597,1324.33,1491.605,1659.49,1828.05,1997.352,2167.46,2338.441,2510.357,2683.272],"decay":1.2424,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"53":{"pitch":53,"name":"F3","f0":174.614,"B":0.00014287,"partial_amplitudes":[0.621988,0.660002,0.395863,0.137507,0.025707,0.018791,0.023444,0.017555,0.005657,0.002022,0.001238,0.000867,0.00103,0.00063,0.000187,0.000127],"freqs":[174.627,349.328,524.179,699.254,874.628,1050.375,1226.57,1403.285,1580.594,1758.57,1937.286,2116.813,2297.224,2478.588,2660.976,2844.457],"decay":0.939,"observations":27,"reference_s":87.02728966437078,"status":"source-labelled, spectral estimate from polyphonic recording"},"54":{"pitch":54,"name":"F#3","f0":184.997,"B":0.00014766,"partial_amplitudes":[0.67043,0.59027,0.418093,0.153788,0.041258,0.022688,0.034367,0.014158,0.00601,0.003042,0.002283,0.001317,0.000838,0.000545,0.000297,0.000191],"freqs":[185.011,370.104,555.36,740.862,926.692,1112.93,1299.657,1486.954,1674.902,1863.58,2053.068,2243.444,2434.786,2627.172,2820.679,3015.381],"decay":0.795,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"55":{"pitch":55,"name":"G3","f0":195.998,"B":0.00015262,"partial_amplitudes":[0.713606,0.514951,0.436972,0.168905,0.056591,0.026426,0.045092,0.010613,0.006315,0.004045,0.003317,0.001759,0.000637,0.000455,0.000405,0.000254],"freqs":[196.013,392.115,588.397,784.947,981.856,1179.212,1377.104,1575.621,1774.849,1974.877,2175.79,2377.676,2580.62,2784.705,2990.017,3196.637],"decay":0.6509,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"56":{"pitch":56,"name":"G#3","f0":207.652,"B":0.00015774,"partial_amplitudes":[0.75043,0.435942,0.452024,0.182477,0.07132,0.029911,0.055348,0.007008,0.006564,0.005006,0.004315,0.002183,0.000432,0.000362,0.000509,0.000315],"freqs":[207.669,415.436,623.399,831.657,1040.307,1249.447,1459.173,1669.583,1880.772,2092.837,2305.871,2519.969,2735.225,2951.73,3169.576,3388.855],"decay":0.5069,"observations":52,"reference_s":88.54673912953518,"status":"source-labelled, spectral estimate from polyphonic recording"},"57":{"pitch":57,"name":"A3","f0":220.0,"B":0.00016303,"partial_amplitudes":[0.823955,0.376922,0.401874,0.112776,0.047914,0.028203,0.040725,0.004794,0.003841,0.003302,0.002415,0.001178,0.000346,0.000239,0.000304,0.00021],"freqs":[220.018,440.143,660.484,881.147,1102.239,1323.868,1546.139,1769.158,1993.031,2217.861,2443.753,2670.809,2899.132,3128.822,3359.98,3592.704],"decay":0.4835,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"58":{"pitch":58,"name":"A#3","f0":233.082,"B":0.0001685,"partial_amplitudes":[0.883435,0.311477,0.344874,0.041153,0.023691,0.026014,0.025408,0.002498,0.001052,0.001541,0.000473,0.000153,0.000254,0.000111,9.4e-05,0.000102],"freqs":[233.102,466.321,699.776,933.583,1167.861,1402.727,1638.295,1874.682,2112.004,2350.374,2589.906,2830.712,3072.905,3316.593,3561.888,3808.895],"decay":0.46,"observations":10,"reference_s":51.13029604986184,"status":"source-labelled, spectral estimate from polyphonic recording"},"59":{"pitch":59,"name":"B3","f0":246.942,"B":0.00017416,"partial_amplitudes":[0.917289,0.338838,0.20332,0.03329,0.025527,0.020463,0.015672,0.001746,0.001,0.001292,0.000344,0.000345,0.000228,0.000121,0.000103,7.5e-05],"freqs":[246.963,494.055,741.405,989.142,1237.393,1486.287,1735.951,1986.512,2238.096,2490.827,2744.83,3000.227,3257.141,3515.693,3776.001,4038.183],"decay":0.801,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"60":{"pitch":60,"name":"C4","f0":261.626,"B":0.00018,"partial_amplitudes":[0.93085,0.358703,0.057268,0.02469,0.026799,0.01446,0.005589,0.000956,0.000925,0.001014,0.000207,0.00053,0.000197,0.000129,0.00011,4.7e-05],"freqs":[261.649,523.439,785.512,1048.008,1311.068,1574.831,1839.438,2105.026,2371.733,2639.697,2909.053,3179.934,3452.476,3726.809,4003.064,4281.369],"decay":1.1421,"observations":61,"reference_s":94.6245369901928,"status":"source-labelled, spectral estimate from polyphonic recording"},"61":{"pitch":61,"name":"C#4","f0":277.183,"B":0.00018604,"partial_amplitudes":[0.993956,0.084782,0.067007,0.0058,0.018329,0.001608,0.000379,0.000542,0.00053,0.000136,0.000133,9.5e-05,6.4e-05,6.3e-05,4e-05,2.4e-05],"freqs":[277.208,554.571,832.244,1110.379,1389.132,1668.656,1949.102,2230.623,2513.37,2797.491,3083.136,3370.451,3659.582,3950.674,4243.867,4539.303],"decay":1.5858,"observations":17,"reference_s":102.98150904859699,"status":"source-labelled, spectral estimate from polyphonic recording"},"62":{"pitch":62,"name":"D4","f0":293.665,"B":0.00019228,"partial_amplitudes":[0.9397,0.318434,0.119224,0.018862,0.030359,0.005488,0.006155,0.001564,0.000524,0.000223,0.000169,0.000113,8.2e-05,7.2e-05,2.6e-05,1.2e-05],"freqs":[293.693,587.555,881.756,1176.465,1471.849,1768.077,2065.315,2363.729,2663.486,2964.747,3267.675,3572.431,3879.175,4188.063,4499.25,4812.891],"decay":1.5358,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"63":{"pitch":63,"name":"D#4","f0":311.127,"B":0.00019874,"partial_amplitudes":[0.828472,0.53278,0.164213,0.03078,0.040549,0.009035,0.011557,0.002491,0.000486,0.000297,0.000194,0.000124,9.5e-05,7.7e-05,1e-05],"freqs":[311.158,622.501,934.215,1246.485,1559.495,1873.428,2188.467,2504.795,2822.591,3142.034,3463.302,3786.57,4112.012,4439.801,4770.105],"decay":1.4858,"observations":31,"reference_s":3.0777067140376997,"status":"source-labelled, spectral estimate from polyphonic recording"},"64":{"pitch":64,"name":"E4","f0":329.628,"B":0.00020541,"partial_amplitudes":[0.916177,0.385794,0.100204,0.022482,0.032703,0.010342,0.007556,0.001867,0.000263,0.000176,0.000111,7e-05,5.6e-05,3.9e-05],"freqs":[329.661,659.526,989.796,1320.675,1652.364,1985.064,2318.976,2654.297,2991.225,3329.957,3670.686,4013.603,4358.9,4706.764],"decay":1.3931,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"65":{"pitch":65,"name":"F4","f0":349.228,"B":0.0002123,"partial_amplitudes":[0.97315,0.225867,0.032834,0.013429,0.023761,0.011302,0.003302,0.00118,3.2e-05,5e-05,2.4e-05,1.3e-05,1.5e-05],"freqs":[349.265,698.753,1048.685,1399.283,1750.769,2103.361,2457.28,2812.742,3169.963,3529.158,3890.538,4254.314,4620.693],"decay":1.3005,"observations":37,"reference_s":95.00439935648389,"status":"source-labelled, spectral estimate from polyphonic recording"},"66":{"pitch":66,"name":"F#4","f0":369.994,"B":0.00021942,"partial_amplitudes":[0.978679,0.203067,0.022155,0.013904,0.01434,0.007497,0.002166,0.000663,5.5e-05,5.9e-05,2.9e-05,7e-06],"freqs":[370.035,740.314,1111.079,1482.573,1855.039,2228.717,2603.847,2980.666,3359.411,3740.317,4123.613,4509.531],"decay":1.4886,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"67":{"pitch":67,"name":"G4","f0":391.995,"B":0.00022679,"partial_amplitudes":[0.983455,0.180111,0.011459,0.014368,0.004907,0.003687,0.001028,0.000146,7.7e-05,6.7e-05,3.4e-05],"freqs":[392.04,784.346,1177.186,1570.824,1965.526,2361.554,2759.172,3158.64,3560.215,3964.155,4370.712],"decay":1.6768,"observations":8,"reference_s":55.87857562850059,"status":"source-labelled, spectral estimate from polyphonic recording"},"68":{"pitch":68,"name":"G#4","f0":415.305,"B":0.0002344,"partial_amplitudes":[0.960468,0.265985,0.054558,0.059615,0.014319,0.004197,0.000805,0.000406,0.000178,4.1e-05,2.5e-05],"freqs":[415.353,830.999,1247.228,1664.331,2082.599,2502.319,2923.78,3347.265,3773.058,4201.438,4632.682],"decay":1.6198,"observations":31,"reference_s":96.90371118793938,"status":"source-labelled, spectral estimate from polyphonic recording"},"69":{"pitch":69,"name":"A4","f0":440.0,"B":0.00024226,"partial_amplitudes":[0.955409,0.286766,0.047632,0.044169,0.026701,0.005002,0.001038,0.000658,0.000239,0.000148],"freqs":[440.053,880.426,1321.438,1763.408,2206.652,2651.487,3098.227,3547.183,3998.665,4452.979],"decay":1.1244,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"70":{"pitch":70,"name":"A#4","f0":466.164,"B":0.00025039,"partial_amplitudes":[0.949492,0.30729,0.040663,0.028683,0.039059,0.005803,0.00127,0.000909,0.0003,0.000254],"freqs":[466.222,932.794,1400.066,1868.386,2338.103,2809.56,3283.103,3759.073,4237.806,4719.639],"decay":0.6289,"observations":4,"reference_s":86.83735848122524,"status":"source-labelled, spectral estimate from polyphonic recording"},"71":{"pitch":71,"name":"B4","f0":493.883,"B":0.00025879,"partial_amplitudes":[0.975749,0.214454,0.03246,0.018204,0.022891,0.003561,0.000722,0.000493,0.000151],"freqs":[493.947,988.278,1483.374,1979.619,2477.392,2977.072,3479.034,3983.652,4491.296],"decay":0.8117,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"72":{"pitch":72,"name":"C5","f0":523.251,"B":0.00026748,"partial_amplitudes":[0.992491,0.119527,0.023941,0.007547,0.0065,0.001284,0.000167,7.3e-05],"freqs":[523.321,1047.062,1571.642,2097.478,2624.988,3154.586,3686.683,4221.686],"decay":0.9945,"observations":31,"reference_s":91.58563805986398,"status":"source-labelled, spectral estimate from polyphonic recording"},"73":{"pitch":73,"name":"C#5","f0":554.365,"B":0.00027645,"partial_amplitudes":[0.928326,0.371029,0.021878,0.00546,0.006167,0.0012,0.000365,0.000118],"freqs":[554.442,1109.343,1665.163,2222.36,2781.388,3342.702,3906.752,4473.984],"decay":0.58,"observations":6,"reference_s":84.36825310033308,"status":"source-labelled, spectral estimate from polyphonic recording"},"74":{"pitch":74,"name":"D5","f0":587.33,"B":0.00028573,"partial_amplitudes":[0.972524,0.231416,0.023321,0.009307,0.003619,0.000763,0.000282,6e-05],"freqs":[587.413,1175.33,1764.253,2354.682,2947.118,3542.055,4139.988,4741.403],"decay":0.953,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"75":{"pitch":75,"name":"D#5","f0":622.254,"B":0.00029532,"partial_amplitudes":[0.995842,0.086835,0.024263,0.012954,0.000993,0.00031,0.000193],"freqs":[622.346,1245.243,1869.241,2494.889,3122.734,3753.318,4387.18],"decay":1.3259,"observations":17,"reference_s":94.6245369901928,"status":"source-labelled, spectral estimate from polyphonic recording"},"76":{"pitch":76,"name":"E5","f0":659.255,"B":0.00030523,"partial_amplitudes":[0.995041,0.096602,0.021927,0.008938,0.000734,0.000206,9.7e-05],"freqs":[659.356,1319.315,1980.48,2643.452,3308.828,3977.204,4649.168],"decay":1.3797,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"77":{"pitch":77,"name":"F5","f0":698.456,"B":0.00031547,"partial_amplitudes":[0.994123,0.106358,0.019589,0.00492,0.000474,0.000102],"freqs":[698.567,1397.794,2098.342,2800.868,3506.027,4214.469],"decay":1.4335,"observations":16,"reference_s":106.97006389465353,"status":"source-labelled, spectral estimate from polyphonic recording"},"78":{"pitch":78,"name":"F#5","f0":739.989,"B":0.00032606,"partial_amplitudes":[0.983541,0.179906,0.016225,0.004123,0.000446,6.8e-05],"freqs":[740.109,1480.943,2223.221,2967.666,3714.994,4465.915],"decay":1.4098,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"79":{"pitch":79,"name":"G5","f0":783.991,"B":0.000337,"partial_amplitudes":[0.967413,0.252861,0.012752,0.003298,0.000416],"freqs":[784.123,1569.038,2355.537,3144.407,3936.433],"decay":1.3861,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"80":{"pitch":80,"name":"G#5","f0":830.609,"B":0.00034831,"partial_amplitudes":[0.946006,0.324008,0.009228,0.00246,0.000383],"freqs":[830.754,1662.376,2495.731,3331.683,4171.09],"decay":1.3624,"observations":10,"reference_s":15.233302435352899,"status":"source-labelled, spectral estimate from polyphonic recording"},"81":{"pitch":81,"name":"A5","f0":880.0,"B":0.00036,"partial_amplitudes":[0.978775,0.204876,0.00483,0.001565,0.000369],"freqs":[880.158,1761.267,2644.273,3530.123,4419.756],"decay":1.4689,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"82":{"pitch":82,"name":"A#5","f0":932.328,"B":0.00037208,"partial_amplitudes":[0.996581,0.082613,0.000359,0.000647,0.000349],"freqs":[932.501,1866.042,2801.662,3740.394,4683.269],"decay":1.5754,"observations":1,"reference_s":105.26068324634358,"status":"source-labelled, spectral estimate from polyphonic recording"},"83":{"pitch":83,"name":"B5","f0":987.767,"B":0.00038457,"partial_amplitudes":[0.995553,0.094199,0.001156,0.000518],"freqs":[987.957,1977.052,2968.424,3963.203],"decay":1.468,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"84":{"pitch":84,"name":"C6","f0":1046.502,"B":0.00039747,"partial_amplitudes":[0.994388,0.105772,0.001952,0.000388],"freqs":[1046.71,2094.668,3145.117,4199.299],"decay":1.3607,"observations":12,"reference_s":107.72978862723573,"status":"source-labelled, spectral estimate from polyphonic recording"},"85":{"pitch":85,"name":"C#6","f0":1108.731,"B":0.00041081,"partial_amplitudes":[0.999952,0.009313,0.00315,0.000175],"freqs":[1108.958,2219.282,3332.335,4449.474],"decay":1.474,"observations":2,"reference_s":84.36825310033308,"status":"source-labelled, spectral estimate from polyphonic recording"},"86":{"pitch":86,"name":"D6","f0":1174.659,"B":0.0004246,"partial_amplitudes":[0.998466,0.055351,0.001577,8.8e-05],"freqs":[1174.908,2351.312,3530.704,4714.569],"decay":1.787,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"87":{"pitch":87,"name":"D#6","f0":1244.508,"B":0.00043884,"partial_amplitudes":[0.994859,0.101272,0.0],"freqs":[1244.781,2491.199,3740.89],"decay":2.1,"observations":7,"reference_s":106.78013271150797,"status":"source-labelled, spectral estimate from polyphonic recording"},"88":{"pitch":88,"name":"E6","f0":1318.51,"B":0.00045357,"partial_amplitudes":[0.997632,0.068774,0.0],"freqs":[1318.809,2639.412,3963.596],"decay":1.8818,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"89":{"pitch":89,"name":"F6","f0":1396.913,"B":0.00046879,"partial_amplitudes":[0.999345,0.036202,0.0],"freqs":[1397.24,2796.444,4199.57],"decay":1.6637,"observations":3,"reference_s":104.50095851376139,"status":"source-labelled, spectral estimate from polyphonic recording"},"90":{"pitch":90,"name":"F#6","f0":1479.978,"B":0.00048452,"partial_amplitudes":[0.999709,0.024138,0.0],"freqs":[1480.336,2962.822,4449.603],"decay":1.662,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"91":{"pitch":91,"name":"G6","f0":1567.982,"B":0.00050078,"partial_amplitudes":[0.999927,0.012069],"freqs":[1568.374,3139.103],"decay":1.6603,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"92":{"pitch":92,"name":"G#6","f0":1661.219,"B":0.00051759,"partial_amplitudes":[1.0,0.0],"freqs":[1661.649,3325.875],"decay":1.6586,"observations":1,"reference_s":103.93116496432472,"status":"source-labelled, spectral estimate from polyphonic recording"},"93":{"pitch":93,"name":"A6","f0":1760.0,"B":0.00053496,"partial_amplitudes":[1.0,0.0],"freqs":[1760.471,3523.764],"decay":1.6586,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"94":{"pitch":94,"name":"A#6","f0":1864.655,"B":0.00055291,"partial_amplitudes":[1.0,0.0],"freqs":[1865.17,3733.432],"decay":1.6586,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"95":{"pitch":95,"name":"B6","f0":1975.533,"B":0.00057146,"partial_amplitudes":[1.0,0.0],"freqs":[1976.098,3955.58],"decay":1.6586,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"},"96":{"pitch":96,"name":"C7","f0":2093.005,"B":0.00059064,"partial_amplitudes":[1.0,0.0],"freqs":[2093.623,4190.951],"decay":1.6586,"observations":0,"reference_s":null,"status":"interpolated harmonic prior, no source note"}}};
+'use strict';
+// Everything audible is reconstructed from COMPLEX CMT RESONATOR FIELDS.
+// There are no sampled notes, independent ADSRs, oscillators, or MIDI velocity gates.
+// Frequencies f_k are fitted, then used as LO offsets in coherent optical heterodyne.
+const $=id=>document.getElementById(id), clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const N=MODEL.profiles, SCORE=MODEL.midi, END=MODEL.meta.song_end;
+const OPTIONS={power:23.39,pulse:.48,volume:.44,modes:12,n2:-1.1,n2Scale:1,beta:9,betaScale:1,
+  coverage:75,overlap:12,detune:0,carrierTime:1.158,laserTimeScale:42,coupling:.28,lossScale:1,
+  fitStrength:1,fdtdSteps:6,speed:1,feedPort:true,lockedPitch:false,probeMode:'Ez',
+  material:'both',chi3Process:'all',chi2Process:'all',chi3Log:0,chi2Log:0,betaLog:0,
+  satOn:true,satDepthLog:0,satILog:0,phaseMismatch:0,pdcSeedLog:-1,
+  lambdaPump:1555,lambdaSignal:1547,chi2Signal:3100,polarizationAngle:0};
+const PHOTON={c:299792458,wavelength:1555e-9,radius:5e-6,ng:4,neff:2.36,Qi:60000,Qe:60000};
+const REGIME={detune:-5.60842165475,kerr:.4336596862,fcd:.623335082,fca:.047841567,tpa:.010845921,sat:1.560770278,tau:1.158373267};
+const NOTE_NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const noteName=p=>NOTE_NAMES[p%12]+(Math.floor(p/12)-1);
+let context=null,processor=null,recDest=null,mainGain=null,playing=false,frames=0,voices=[],song={state:'stopped',pos:0,next:0,done:0,laserSamples:0};
+let lastEventNote=60,visualTime=0,lastRAF=0,field=null,scope=new Float32Array(4096),scopeIndex=0,audioRms=0,selection=60,events=0;
+let probeSamples=[],lastOpticalComplex=[0,0],lastOpticalPort=0,selectedVoice=null,neuronState=null;
+let pumpTrace=new Float32Array(460),traceIndex=0,lastGeneratedEnergy=0,lastChi2Energy=0,lastChi3Energy=0;
+const POW10=x=>Math.pow(10,clamp(x,-4,5));
+const useChi2=()=>OPTIONS.material==='chi2'||OPTIONS.material==='both';
+const useChi3=()=>OPTIONS.material==='chi3'||OPTIONS.material==='both';
+const overlapFactor=()=>clamp(OPTIONS.coverage/100*OPTIONS.overlap/100,0,1);
+const matchFactor=()=>{const df=40*(OPTIONS.lambdaSignal-OPTIONS.lambdaPump)/OPTIONS.lambdaPump;const dq=40*(OPTIONS.chi2Signal-2*OPTIONS.lambdaPump)/(2*OPTIONS.lambdaPump);const d=OPTIONS.phaseMismatch+(useChi2()?dq:0)+(useChi3()?df:0);return Math.abs(d)<1e-7?1:Math.abs(Math.sin(d)/d);};
+const chi2Gain=()=>useChi2()?0.42*POW10(OPTIONS.chi2Log)*overlapFactor()*matchFactor()*Math.abs(Math.cos(OPTIONS.polarizationAngle*Math.PI/180)):0;
+const chi3Gain=()=>useChi3()?1.15*POW10(OPTIONS.chi3Log)*overlapFactor():0;
+const betaEffective=()=>useChi3()?Math.max(0,OPTIONS.beta)*1e-12*POW10(OPTIONS.betaLog):0;
+const currentNonlinear=()=>({chi2:chi2Gain(),chi3:chi3Gain(),beta:betaEffective(),satDepth:OPTIONS.satOn?REGIME.sat*POW10(OPTIONS.satDepthLog):0});
+
+const maxVoices=22;
+function cmtRHS(x,y,n,P){
+ const I=x*x+y*y, active=useChi3();
+ const overlap=overlapFactor();
+ // The normalized CMT reference Kerr/FCD/FCA/TPA terms remain visible.
+ // The user-controlled χ³ material contributes real phase and absorption
+ // rates; log coefficients are applied inside the solved differential equation.
+ const signedKerr=active?(OPTIONS.n2 / -1.1)*chi3Gain():0;
+ const phase=REGIME.detune+OPTIONS.detune-(REGIME.kerr +.18*signedKerr)*I+n+REGIME.fcd*Math.pow(Math.max(0,n),.8);
+ const betaLoss=betaEffective()*1e11*I*overlap*(PHOTON.c/PHOTON.ng)*(30000/(2*Math.PI*PHOTON.c/PHOTON.wavelength))*.5;
+ const saturation=OPTIONS.satOn?REGIME.sat*POW10(OPTIONS.satDepthLog)/(1+I/(1.5*POW10(OPTIONS.satILog))):0;
+ const loss=1+REGIME.fca*n+REGIME.tpa*I+saturation+betaLoss;
+ return [Math.sqrt(Math.max(0,P))-loss*x-phase*y,phase*x-loss*y,-n/OPTIONS.carrierTime+I*I];
+}
+function integrateCMT(v,dt,P){
+ const maxStep=.035;const steps=Math.max(1,Math.ceil(dt/maxStep));const h=dt/steps;
+ for(let i=0;i<steps;i++){
+  const [x,y,n]=[v.aRe,v.aIm,v.n];let a=cmtRHS(x,y,n,P);
+  let b=cmtRHS(x+a[0]*h/2,y+a[1]*h/2,Math.max(0,n+a[2]*h/2),P);
+  let c=cmtRHS(x+b[0]*h/2,y+b[1]*h/2,Math.max(0,n+b[2]*h/2),P);
+  let d=cmtRHS(x+c[0]*h,y+c[1]*h,Math.max(0,n+c[2]*h),P);
+  v.aRe=clamp(x+h*(a[0]+2*b[0]+2*c[0]+d[0])/6,-50,50);
+  v.aIm=clamp(y+h*(a[1]+2*b[1]+2*c[1]+d[1])/6,-50,50);
+  v.n=clamp(n+h*(a[2]+2*b[2]+2*c[2]+d[2])/6,0,1e5);
+ }
+ v.intensity=v.aRe*v.aRe+v.aIm*v.aIm;
+}
+function createVoice(pitch,velocity=85,pulseDuration=OPTIONS.pulse){
+ const patch=N[String(pitch)];if(!patch)return null;
+ const nModes=Math.min(OPTIONS.modes,patch.freqs.length);
+ const ring=[];
+ for(let j=0;j<nModes;j++){
+  const f=patch.freqs[j],gain=patch.partial_amplitudes[j];
+  // The optical resonance is translated to an audible DETUNING: f_k is not
+  // generated by an independent oscillator. Coherent heterodyne measures field.
+  const omega=2*Math.PI*f;
+  const naturalDamping=patch.decay*(1+.075*Math.pow(j,1.09))*OPTIONS.lossScale;
+  ring.push({re:0,im:0,kappa:gain*OPTIONS.fitStrength/(1+.045*j),freq:f,omega,
+    damping:naturalDamping,rotRe:Math.cos(omega/(context?.sampleRate||44100)),rotIm:Math.sin(omega/(context?.sampleRate||44100)),
+    loRe:1,loIm:0,amp:0});
+ }
+ const obj={pitch,patch,ring,vel:velocity/100,aRe:0,aIm:0,n:0,intensity:0,t:0,pulseDuration,pump:OPTIONS.power,
+   startSample:frames,ID:++events,source:'CMT',lastProbe:0,sourceOn:true};
+ voices.push(obj);if(voices.length>maxVoices)voices.splice(0,voices.length-maxVoices);
+ selection=pitch;lastEventNote=pitch;selectedVoice=obj;
+ return obj;
+}
+// Complex algebra in normalized energy-mode amplitudes.
+// The reduced modal couplings implement seeded three/four-wave mixing.
+function mixPair(a,b,theta,phi){
+ const c=Math.cos(theta),t=Math.sin(theta),u=Math.cos(phi),v=Math.sin(phi);
+ const ar=a.re,ai=a.im,br=b.re,bi=b.im;
+ // i*exp(-iφ)*b and i*exp(+iφ)*a. Norm-preserving pair conversion.
+ a.re=c*ar+t*(v*br-u*bi);a.im=c*ai+t*(u*br+v*bi);
+ b.re=c*br+t*(-v*ar-u*ai);b.im=c*bi+t*(u*ar-v*ai);
+}
+function phaseRotate(m,phi){const c=Math.cos(phi),s=Math.sin(phi),r=m.re,i=m.im;
+ m.re=c*r-s*i;m.im=s*r+c*i;
+}
+function nonlinearStep(v,dt){
+ const ring=v.ring,N=ring.length,over=overlapFactor();
+ if(N<2||over<=0)return;
+ let E=0;for(let i=0;i<N;i++)E+=ring[i].re**2+ring[i].im**2;
+ const density=Math.sqrt(E/Math.max(1,N)),pump=Math.sqrt(v.intensity)/(1+Math.sqrt(v.intensity));
+ const norm=clamp(density/.12,.12,5),phase0=Math.atan2(v.aIm,v.aRe);
+ const g2=chi2Gain()*norm*pump,g3=chi3Gain()*Math.min(7,1+.35*norm)*pump;
+ const phi=phase0+OPTIONS.phaseMismatch+OPTIONS.polarizationAngle*Math.PI/180;
+ // χ²: second harmonic, sum/difference, seeded parametric down-conversion.
+ if(g2>0){
+  const proc=OPTIONS.chi2Process,all=proc==='all';
+  if(all||proc==='shg'){
+   for(let i=0;i+1<N;i+=2){const a=ring[i],b=ring[i+1];
+    const theta=clamp(g2*dt*2.1*Math.sqrt(a.re*a.re+a.im*a.im+.025),0,.42);
+    mixPair(a,b,theta,2*Math.atan2(a.im,a.re)-Math.atan2(b.im,b.re));
+   }
+  }
+  if(all||proc==='sfg'){
+   for(let j=0;j+2<N;j+=3){
+    const a=ring[j],b=ring[j+1],c=ring[j+2];
+    const theta=clamp(g2*dt*7.5*Math.sqrt(a.re*a.re+a.im*a.im+b.re*b.re+b.im*b.im+.04),0,.42);
+    mixPair(b,c,theta,Math.atan2(a.im,a.re)+phi);
+    // Reciprocal difference-frequency conversion uses the same coupling.
+    mixPair(a,c,theta*.55,-phi);
+   }
+  }
+  if(all||proc==='pdc'){
+   // Classical *seeded* OPA/PDC analog. Vacuum quantum fluctuations are NOT
+   // simulated. The pump supplies energy to signal/idler sideband fields.
+   const seed=.00025*POW10(OPTIONS.pdcSeedLog),g=clamp(g2*dt*2.2,0,.16);
+   for(let j=0;j+2<N;j+=3){const sig=ring[j+1],idl=ring[j+2];
+    const sr=sig.re,si=sig.im,ir=idl.re,ii=idl.im;
+    const pr=Math.cos(phi),pi=Math.sin(phi);
+    const pumpAmp=Math.sqrt(ring[j].re**2+ring[j].im**2);
+    const h=Math.min(.14,g*(pumpAmp+.35));
+    sig.re+=h*(pr*ir+pi*ii)+seed*dt;sig.im+=h*(pi*ir-pr*ii);
+    idl.re+=h*(pr*sr+pi*si)+seed*dt;idl.im+=h*(pi*sr-pr*si);
+   }
+  }
+ }
+ // χ³: self/cross-phase modulation, degenerate 4WM and 3rd harmonic.
+ if(g3>0){
+  const proc=OPTIONS.chi3Process,all=proc==='all';
+  if(all||proc==='spm'){
+   for(let j=0;j<N;j++){
+    const a=ring[j],ej=a.re*a.re+a.im*a.im;
+    phaseRotate(a,clamp(g3*dt*(ej+2*(E-ej))*.70, -1.1,1.1));
+   }
+  }
+  if(all||proc==='fwm'){
+   for(let j=1;j+1<N;j++){
+    const a=ring[j-1],p=ring[j],b=ring[j+1];
+    const pumpP=p.re*p.re+p.im*p.im;
+    const theta=clamp(g3*dt*3.2*(pumpP+.04),0,.46);
+    mixPair(a,b,theta,2*Math.atan2(p.im,p.re)+OPTIONS.phaseMismatch);
+   }
+  }
+  if(all||proc==='thg'){
+   for(let j=0;j+2<N;j+=3){const a=ring[j],b=ring[j+2];
+    const e=a.re*a.re+a.im*a.im;
+    mixPair(a,b,clamp(g3*dt*2.4*(e+.025),0,.41),3*Math.atan2(a.im,a.re));
+   }
+  }
+ }
+ // Clip only improbable >100× energy excursions from poorly calibrated
+ // phenomenological high-gain coefficients; do not hide parameter response.
+ let newE=0;for(const m of ring)newE+=m.re*m.re+m.im*m.im;
+ const maximum=Math.min(48,E+Math.max(.007,E*.25)*dt*50);
+ if(newE>maximum){const f=Math.sqrt(maximum/newE);for(const m of ring){m.re*=f;m.im*=f;}}
+ lastChi2Energy=g2;lastChi3Energy=g3;lastGeneratedEnergy=newE;
+}
+function driveCMTModes(v,blockDt){
+ const pump=v.t<v.pulseDuration?OPTIONS.power:0;
+ integrateCMT(v,blockDt*OPTIONS.laserTimeScale,pump);
+ const I=v.intensity;let pr=0,pi=0;
+ const chi3=chi3Gain(),nonlin=useChi3();
+ const betaResponse=betaEffective()*1e11*I*overlapFactor()*(PHOTON.c/PHOTON.ng)*(30000/(2*Math.PI*PHOTON.c/PHOTON.wavelength))*.5;
+ for(let j=0;j<v.ring.length;j++){
+  const m=v.ring[j];let r=m.re,i=m.im;
+  const loss=m.damping+.018*OPTIONS.lossScale*v.n/(1+v.n)+betaResponse;
+  const shift=(nonlin?.45*chi3*I/(1+I):0)+.08*v.n/(1+v.n);
+  const e=Math.exp(-Math.min(200,loss)*blockDt),ang=clamp(shift*blockDt,-1.2,1.2);
+  const cr=Math.cos(ang),si=Math.sin(ang);
+  const r0=e*(r*cr-i*si),i0=e*(r*si+i*cr);
+  const chain=j===0?0:OPTIONS.coupling;
+  const sourceRe=v.aRe*.85+chain*pr,sourceIm=v.aIm*.85+chain*pi;
+  const inputGain=m.kappa*v.vel*1.35*(1-e)/Math.max(.15,loss);
+  m.re=r0+inputGain*sourceRe;m.im=i0+inputGain*sourceIm;
+  pr=m.re;pi=m.im;
+ }
+ nonlinearStep(v,blockDt);
+ v.t+=blockDt;
+}
+function renderAudio(event){
+ const out=event.outputBuffer.getChannelData(0),right=event.outputBuffer.getChannelData(1);const sr=context.sampleRate;
+ const quantum=64;let sum=0;
+ for(let a=0;a<out.length;a+=quantum){
+  const b=Math.min(out.length,a+quantum),delta=(b-a)/sr;
+  if(song.state==='playing'){
+   const current= song.pos*OPTIONS.speed/sr;
+   while(song.next<SCORE.length && SCORE[song.next].s<=current+1e-8){
+    const ev=SCORE[song.next++],duration=clamp((ev.e-ev.s)/OPTIONS.speed,.06,2.4);
+    createVoice(ev.p,ev.v,duration);song.done++;
+   }
+  }
+  if(song.state!=='paused')for(const v of voices)driveCMTModes(v,delta);
+  for(let n=a;n<b;n++){
+   let signal=0;
+   if(song.state!=='paused')for(const v of voices){
+    for(const m of v.ring){
+     // heterodyne optical field: real[z(t) exp(i omega_LO t)]
+     // no standalone sinusoidal sound generator or amplitude gate.
+     signal+=m.re*m.loRe-m.im*m.loIm;
+     const r=m.loRe*m.rotRe-m.loIm*m.rotIm;
+     m.loIm=m.loRe*m.rotIm+m.loIm*m.rotRe;m.loRe=r;
+    }
+   }
+   // final converter saturation prevents clipping; not a musical envelope
+   const sample=Math.tanh(signal*.42)*OPTIONS.volume;
+   out[n]=sample;right[n]=sample*.997;
+   scope[scopeIndex]=sample;scopeIndex=(scopeIndex+1)%scope.length;sum+=sample*sample;
+   if(song.state==='playing')song.pos++;
+   frames++;
+  }
+ }
+ voices=voices.filter(v=>v.t<Math.max(8,v.pulseDuration+9)&&v.ring.some(r=>Math.hypot(r.re,r.im)>1e-4));
+ if(song.state==='playing'&&song.next===SCORE.length&&song.pos*OPTIONS.speed/sr>END+4){song.state='finished';}
+ audioRms=.85*audioRms+.15*Math.sqrt(sum/out.length);
+ if(selectedVoice){lastOpticalComplex=[selectedVoice.aRe,selectedVoice.aIm];lastOpticalPort=selectedVoice.ring.reduce((a,z)=>a+z.re*z.re+z.im*z.im,0);}
+}
+async function startAudio(){if(context){await context.resume();playing=true;return;}
+ context=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+ processor=context.createScriptProcessor(512,0,2);processor.onaudioprocess=renderAudio;
+ mainGain=context.createGain();mainGain.gain.value=1;
+ processor.connect(mainGain);mainGain.connect(context.destination);
+ recDest=context.createMediaStreamDestination();mainGain.connect(recDest);window.audioCapture=recDest;
+ await context.resume();playing=true;$('audioStatus').textContent='AUDIO ON';}
+async function singleNote(p=selection){await startAudio();stopSong(false);voices=[];selection=p;
+ createVoice(p,90,OPTIONS.pulse);updateSelection();selectedVoice=voices[0];visualTime=0;
+ // Pre-propagate the picosecond optical flight through the effective Yee grid.
+ // This is not an acoustic envelope or additional laser pulse.
+ if(field.output<.001)for(let i=0;i<1450;i++)field.tick(selectedVoice);
+ probeSamples=[];setMessage('CW pulse → nonlinear CMT → coupled optical modes → coherent audio output');}
+async function playSong(from=0){await startAudio();voices=[];song={state:'playing',pos:Math.round(from/OPTIONS.speed*context.sampleRate),next:0,done:0,laserSamples:0};
+ while(song.next<SCORE.length && SCORE[song.next].s<from-1e-8)song.next++;
+ setMessage('Entire MIDI · photonic-mode synthesis');syncTransport();
+ if(field.output<.001){const visualLaser={aRe:0,aIm:0,intensity:0,t:0,pulseDuration:.2};for(let i=0;i<1450;i++)field.tick(visualLaser);}}
+function stopSong(clear=true){song.state='stopped';song.done=0;if(clear){song.pos=0;song.next=0;voices=[];}syncTransport();}
+function pauseSong(){if(song.state==='playing')song.state='paused';else if(song.state==='paused')song.state='playing';syncTransport();}
+function midiTime(){return context ? song.pos*OPTIONS.speed/context.sampleRate : 0;}
+function syncTransport(){if($('songPos'))$('songPos').value=Math.min(END,midiTime());
+ const v=Math.min(END,midiTime());$('clock').textContent=mmss(v)+' / '+mmss(END);$('counter').textContent=song.next+' / '+SCORE.length;
+ $('pause').textContent=song.state==='paused'?'▶ Resume':'Ⅱ Pause';$('pause').disabled=!['paused','playing'].includes(song.state);}
+function mmss(t){const v=Math.max(0,Math.floor(t));return Math.floor(v/60)+':'+String(v%60).padStart(2,'0');}
+function setMessage(m){$('message').textContent=m;}
+function updateSelection(){const p=N[String(selection)];if(!p)return;
+ $('noteTitle').textContent=p.name+' · '+p.f0.toFixed(1)+' Hz';
+ $('fitLabel').textContent=p.observations?`${p.observations} MIDI-labelled occurrences`:'Interpolated · not directly recorded';
+ $('liveRings').textContent=Math.min(OPTIONS.modes,p.freqs.length)+' modes';
+ document.querySelectorAll('.key.sel').forEach(k=>k.classList.remove('sel'));
+ const btn=document.querySelector('.key[data-p="'+selection+'"]');if(btn){btn.classList.add('sel');if(song.state!=='playing')btn.scrollIntoView({block:'nearest',inline:'center'});}
+}
+class Field2D{
+ constructor(nx=210){this.nx=nx;this.ny=Math.floor(nx*.73);this.N=nx*this.ny;this.E=new Float32Array(this.N);this.Hx=new Float32Array(this.N);this.Hy=new Float32Array(this.N);
+  this.eps=new Float32Array(this.N);this.mask=new Uint8Array(this.N);this.ring=new Uint8Array(this.N);this.sponge=new Float32Array(this.N);this.r=Math.round(this.ny*.255);
+  this.cx=Math.round(nx*.51);this.cy=Math.round(this.ny*.36);this.bus=this.cy+this.r+5;this.clock=0;this.output=0;this.absorb=0;this.deltaN=0;
+  this.polar2=new Float64Array(this.N);this.polar3=new Float64Array(this.N);this.p2Magnitude=0;this.p3Magnitude=0;this.satBleach=0;
+  for(let j=0;j<this.ny;j++)for(let i=0;i<this.nx;i++){
+   const k=j*this.nx+i;const d=Math.abs(Math.hypot(i-this.cx,j-this.cy)-this.r);const onRing=d<2.3;
+   this.ring[k]=onRing?1:0;this.mask[k]=onRing&&((Math.atan2(j-this.cy,i-this.cx)+2*Math.PI)%(2*Math.PI))<2*Math.PI*OPTIONS.coverage/100?1:0;
+   this.eps[k]=(onRing||Math.abs(j-this.bus)<3)?PHOTON.neff**2:1.44**2;
+   const edge=Math.max(0,12-Math.min(i,j,this.nx-i-1,this.ny-j-1));this.sponge[k]=Math.exp(-.006*edge*edge);
+  }
+  this.img=$('fdtd').getContext('2d',{alpha:false}).createImageData(nx,this.ny);$('fdtd').width=nx;$('fdtd').height=this.ny;
+  this.dx=PHOTON.radius/this.r;this.dt=.42*this.dx/PHOTON.c;this.dl=PHOTON.c*this.dt/PHOTON.neff;
+  this.alphaI=2*Math.PI*PHOTON.ng/(PHOTON.wavelength*PHOTON.Qi);
+  this.alphaE=2*Math.PI*PHOTON.ng/(PHOTON.wavelength*PHOTON.Qe);
+ }
+ tick(v){const E=this.E,Hx=this.Hx,Hy=this.Hy,nx=this.nx,ny=this.ny,C=.42;
+  for(let j=1;j<ny-2;j++)for(let i=1;i<nx-2;i++){const k=j*nx+i;Hx[k]-=C*(E[k+nx]-E[k]);Hy[k]+=C*(E[k+1]-E[k]);}
+  const Ip=Math.max(0,v?.intensity||0)*1e11,over=OPTIONS.overlap/100,localN2=useChi3()?OPTIONS.n2*POW10(OPTIONS.chi3Log)*1e-13*over:0;
+  const localBeta=betaEffective()*over;let dnSum=0,lossSum=0,covered=0;
+  const p2=useChi2()?clamp(chi2Gain()*.021,0,1.4):0;
+  const p3=useChi3()?clamp(chi3Gain()*.018,0,1.4):0;let p2mag=0,p3mag=0,satSum=0;
+  for(let j=2;j<ny-2;j++)for(let i=2;i<nx-2;i++){
+   const k=j*nx+i,cov=this.mask[k],ring=this.ring[k];
+   const I=Ip+.15*E[k]*E[k]*1e11;
+   const dn=cov?clamp(localN2*I,-1.4,1.4):0;const eps=this.eps[k]+(cov?2*PHOTON.neff*dn+dn*dn:0);
+   E[k]+=C/Math.max(1,eps)*(Hy[k]-Hy[k-1]-Hx[k]+Hx[k-nx]);
+   // Yee nonlinear polarization P_NL=ε0(χ² E² + χ³ E³). The dimensionless
+   // coefficients map to an effective-mode surrogate; the *difference* P(t)-P(t-dt)
+   // enters Maxwell-Ampère, so χ² generates a 2ω component rather than a fake dc step.
+   if(cov){
+    const pol2=p2*E[k]*E[k],pol3=p3*E[k]*E[k]*E[k];
+    const dPol=clamp((pol2-this.polar2[k])+(pol3-this.polar3[k]),-.12,.12);
+    E[k]-=C*dPol/Math.max(1,eps);
+    this.polar2[k]=pol2;this.polar3[k]=pol3;p2mag+=Math.abs(pol2);p3mag+=Math.abs(pol3);
+   }
+   const isat=1.5*POW10(OPTIONS.satILog),satStrength=OPTIONS.satOn?POW10(OPTIONS.satDepthLog):0;
+   const sat0=cov?this.alphaI*.78*satStrength/(1+satStrength):0;
+   const alphaSat=sat0/(1+(I/1e11)/isat);
+   // Qi covers unsaturated loss: subtract the bleached fraction, keep α_total ≥0.
+   const alpha=Math.max(0,(ring?(this.alphaI+this.alphaE):0)+(alphaSat-sat0)+(cov?Math.max(0,localBeta*I):0));
+   if(cov)satSum+=(sat0-alphaSat)*this.dl;
+   const att=this.sponge[k]*Math.exp(-.5*alpha*this.dl);E[k]*=att;Hx[k]*=att;Hy[k]*=att;
+   if(cov){covered++;dnSum+=dn;lossSum+=1-Math.exp(-Math.max(0,localBeta*I)*this.dl);}
+  }
+  const x=v?.aRe||0,y=v?.aIm||0;const cw=(v&&v.t<v.pulseDuration)?Math.sqrt(Math.max(0,OPTIONS.power)):0;this.clock+=2*Math.PI*C/(this.r*PHOTON.wavelength/PHOTON.radius);
+  const wave=.073*(Math.sin(this.clock)*(cw-.65*x)+Math.cos(this.clock)*(-.65*y));for(let j=this.bus-4;j<=this.bus+4;j++)E[j*nx+12]+=wave*Math.exp(-.2*(j-this.bus)**2);
+  let out=0;for(let j=this.bus-3;j<=this.bus+3;j++){const z=E[j*nx+nx-12];out+=z*z;}
+  this.output=.89*this.output+.11*out/7;this.deltaN=covered?dnSum/covered:0;this.absorb=covered?lossSum/covered:0;
+  this.p2Magnitude=covered?p2mag/covered:0;this.p3Magnitude=covered?p3mag/covered:0;this.satBleach=covered?satSum/covered:0;
+ }
+ draw(){const d=this.img.data,ctx=$('fdtd').getContext('2d',{alpha:false});let peak=.01;
+  for(let k=0;k<this.N;k+=3)peak=Math.max(peak,Math.abs(this.E[k]));const scale=1.1/peak;
+  for(let k=0;k<this.N;k++){const z=clamp(this.E[k]*scale,-1,1),m=Math.abs(z),off=4*k;
+   d[off]=Math.round(z<0?245-157*m:245-25*m);d[off+1]=Math.round(z<0?248-82*m:250-139*m);d[off+2]=Math.round(254-(z>0?176:50)*m);
+   if(this.mask[k]){d[off]=Math.min(255,d[off]+24);d[off+1]*=.8;}d[off+3]=255;
+  }
+  ctx.putImageData(this.img,0,0);
+  ctx.lineWidth=1.7;ctx.strokeStyle='#316a7c';ctx.beginPath();ctx.arc(this.cx,this.cy,this.r,0,2*Math.PI);ctx.stroke();
+  ctx.lineWidth=3;ctx.strokeStyle='#d19c5e';ctx.beginPath();ctx.arc(this.cx,this.cy,this.r,0,2*Math.PI*OPTIONS.coverage/100);ctx.stroke();
+  ctx.lineWidth=2;ctx.strokeStyle='#bb595e';ctx.beginPath();ctx.moveTo(this.nx-12,this.bus-10);ctx.lineTo(this.nx-12,this.bus+10);ctx.stroke();
+  ctx.font='9px ui-monospace, monospace';ctx.fillStyle='#28536b';ctx.fillText('CW →',8,this.bus+19);ctx.fillText('OUT',this.nx-40,this.bus+19);
+ }
+}
+function drawLine(canvas,entries,{color='#3e829a',ymin=-1,ymax=1}={}){const g=canvas.getContext('2d');const w=canvas.width,h=canvas.height;
+ g.clearRect(0,0,w,h);g.strokeStyle='#d9e5ed';g.lineWidth=1;g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();g.strokeStyle=color;g.lineWidth=1.5;g.beginPath();
+ for(let i=0;i<entries.length;i++){const x=i/Math.max(1,entries.length-1)*w,y=h-9-clamp((entries[i]-ymin)/(ymax-ymin),0,1)*(h-18);if(!i)g.moveTo(x,y);else g.lineTo(x,y);}g.stroke();}
+function drawSpectrum(){const c=$('spectrum'),g=c.getContext('2d'),w=c.width,h=c.height;
+ g.clearRect(0,0,w,h);const v=selectedVoice||voices[voices.length-1];if(!v)return;
+ const rr=v.ring;let max=.01;for(const m of rr)max=Math.max(max,Math.hypot(m.re,m.im));
+ const bw=(w-22)/Math.max(1,rr.length);for(let j=0;j<rr.length;j++){
+  const a=Math.hypot(rr[j].re,rr[j].im)/max;
+  g.fillStyle=j%2?'#6e9fba':'#438e9c';g.fillRect(12+j*bw,h-13-a*(h-28),Math.max(2,bw*.72),a*(h-28));
+ }
+ g.fillStyle='#688292';g.font='10px system-ui';g.fillText('1',9,h-2);g.fillText(String(rr.length),w-22,h-2);
+}
+function updateWavelengths(){const p=OPTIONS.lambdaPump,s=OPTIONS.lambdaSignal,signal2=OPTIONS.chi2Signal;
+ const fwmi=1/(2/p-1/s),shg=p/2,sfg=1/(1/p+1/s),dfg=1/Math.abs(1/p-1/s),pdci=1/(1/p-1/signal2);
+ const e=$('lambdaInfo');e.textContent=`SHG ${shg.toFixed(1)} nm · SFG ${sfg.toFixed(1)} nm · DFG ${(dfg/1000).toFixed(1)} µm · PDC ${signal2.toFixed(0)}/${pdci.toFixed(0)} nm · FWM ${fwmi.toFixed(1)} nm`;
+}
+function applyPreset(name){
+ const values={linear:{material:'linear',satOn:false,chi2Log:-3,chi3Log:-3,betaLog:-3},
+  kerr:{material:'chi3',chi3Process:'spm',chi3Log:1.8,betaLog:-2,satOn:false},
+  fwm:{material:'chi3',chi3Process:'fwm',chi3Log:2.2,betaLog:-2,satOn:false},
+  thg:{material:'chi3',chi3Process:'thg',chi3Log:2.4,satOn:false},
+  shg:{material:'chi2',chi2Process:'shg',chi2Log:2,satOn:false},
+  sfg:{material:'chi2',chi2Process:'sfg',chi2Log:2.1,satOn:false},
+  pdc:{material:'chi2',chi2Process:'pdc',chi2Log:2.2,pdcSeedLog:0,satOn:false},
+  saturable:{material:'chi3',chi3Process:'spm',chi3Log:0,satOn:true,satDepthLog:1.0,satILog:-.35},
+  absorption:{material:'chi3',chi3Process:'all',chi3Log:.3,betaLog:3,satOn:false},
+  full:{material:'both',chi2Process:'all',chi3Process:'all',chi2Log:1.5,chi3Log:1.5,satOn:true,satDepthLog:.2,betaLog:1}};
+ Object.assign(OPTIONS,values[name]||values.full);
+ syncControls();
+}
+function syncControls(){for(const el of document.querySelectorAll('[data-opt]')){
+ const key=el.dataset.opt;if(!(key in OPTIONS))continue;
+ if(el.type==='checkbox')el.checked=!!OPTIONS[key];else el.value=String(OPTIONS[key]);
+ const o=$(key+'Val');if(o)o.textContent=formatValue(key,OPTIONS[key]);
+}}
+function formatValue(key,value){if(['chi3Log','chi2Log','betaLog','satDepthLog','satILog','pdcSeedLog'].includes(key))return `×${POW10(value).toPrecision(3)}`;
+ return typeof value==='number'?(Math.abs(value)>100?Math.round(value):Number(value.toFixed(3))):String(value);}
+
+function animate(time){requestAnimationFrame(animate);const dt=lastRAF?Math.min(.055,(time-lastRAF)/1000):0;lastRAF=time;
+ if(playing){const v=selectedVoice&&voices.includes(selectedVoice)?selectedVoice:voices[voices.length-1];
+  const laserActive=!!v&&v.t<v.pulseDuration&&OPTIONS.power>0;
+  pumpTrace[traceIndex%pumpTrace.length]=laserActive?OPTIONS.power:0;traceIndex++;
+  if(v){for(let i=0;i<OPTIONS.fdtdSteps;i++)field.tick(v);}
+  visualTime+=dt;probeSamples.push([visualTime,v?.intensity||0,lastOpticalPort,field.output]);if(probeSamples.length>240)probeSamples.shift();
+ }
+ field.draw();
+ const vals=new Array(760);for(let i=0;i<vals.length;i++)vals[i]=scope[(scopeIndex+Math.floor(i*scope.length/vals.length))%scope.length];
+ const visibleAudioPeak=Math.max(.008,...vals.map(Math.abs));drawLine($('audioTrace'),vals,{color:'#2d819a',ymin:-visibleAudioPeak*1.08,ymax:visibleAudioPeak*1.08});
+ if(probeSamples.length){const a=probeSamples.slice(-190);drawLine($('optTrace'),a.map(x=>x[1]),{color:'#b57d54',ymin:0,ymax:Math.max(1,...a.map(z=>z[1]))});
+  drawLine($('portTrace'),a.map(x=>Math.sqrt(x[2])),{color:'#2d9b85',ymin:0,ymax:Math.max(.02,...a.map(z=>Math.sqrt(z[2])))});}
+ $('liveOpt').textContent=(selectedVoice?.intensity||0).toFixed(3);$('livePort').textContent=Math.sqrt(lastOpticalPort).toFixed(3);
+ $('liveFDTD').textContent=field.output.toExponential(2);$('liveAudio').textContent=audioRms.toFixed(3);
+ $('liveRings').textContent=(selectedVoice?.ring.length||0)+' modes';
+ $('n2Display').textContent=field.deltaN.toExponential(1);$('betaDisplay').textContent=field.absorb.toExponential(1);
+ if($('p2Display'))$('p2Display').textContent=field.p2Magnitude.toExponential(2);
+ if($('p3Display'))$('p3Display').textContent=field.p3Magnitude.toExponential(2);
+ if($('satDisplay'))$('satDisplay').textContent=field.satBleach.toExponential(2);
+ if($('mixDisplay'))$('mixDisplay').textContent=(lastChi2Energy+lastChi3Energy).toFixed(3);
+ if($('pumpTrace')){const sorted=Array.from({length:pumpTrace.length},(_,j)=>pumpTrace[(traceIndex+j)%pumpTrace.length]);drawLine($('pumpTrace'),sorted,{color:'#c58546',ymin:0,ymax:Math.max(1,OPTIONS.power*1.05)});}
+ if($('spectrum'))drawSpectrum();
+ if($('lambdaInfo'))updateWavelengths();
+ if($('materialStatus'))$('materialStatus').textContent=OPTIONS.material==='both'?'χ² + χ³':OPTIONS.material==='chi2'?'χ²':OPTIONS.material==='chi3'?'χ³':'Linear';
+ if(playing && song.state==='playing' && song.next && SCORE[Math.min(song.next-1,SCORE.length-1)].p!==selection){selection=SCORE[song.next-1].p;updateSelection();}
+ syncTransport();
+}
+function buildKeys(){let whites=0;const keyboard=$('keyboard');const kw=34,bw=21;
+ for(let p=36;p<=96;p++){
+  const black=[1,3,6,8,10].includes(p%12);const el=document.createElement('button');el.className='key '+(black?'black':'white')+(N[String(p)].observations?' observed':'');el.dataset.p=p;
+  const x=whites*kw-(black?bw/2:0);el.style.left=x+'px';el.style.width=(black?bw:kw)+'px';
+  if(!black){whites++;if(p%12===0||p===60)el.textContent=noteName(p);}
+  el.title=noteName(p)+' · '+(N[String(p)].observations?'recorded in MIDI':'interpolated');
+  el.onclick=()=>singleNote(p);keyboard.appendChild(el);
+ }
+ keyboard.style.width=(whites*kw)+'px';
+}
+function bindSliders(){for(const inp of document.querySelectorAll('[data-opt]')){
+ const key=inp.dataset.opt;if(!(key in OPTIONS))continue;
+ inp.oninput=()=>{
+  let val=inp.type==='checkbox'?inp.checked:(inp.tagName==='SELECT'?inp.value:Number(inp.value));
+  if(key==='speed'&&context){const t=midiTime();OPTIONS.speed=Number(val);song.pos=Math.round(t*context.sampleRate/OPTIONS.speed);}
+  else OPTIONS[key]=val;
+  if(['coverage','fdtdSteps'].includes(key)&&field){if(key==='coverage')field=new Field2D();}
+  if(key==='modes'&&selectedVoice&&selectedVoice.ring.length>val)selectedVoice.ring.splice(Number(val));
+  if(key==='lambdaPump'||key==='lambdaSignal'||key==='chi2Signal')updateWavelengths();
+  const out=$(key+'Val');if(out)out.textContent=formatValue(key,val);
+ };
+}syncControls();}
+
+function init(){field=new Field2D();buildKeys();bindSliders();updateSelection();
+ $('strike').onclick=()=>singleNote(selection);$('playSong').onclick=()=>playSong(0);$('pause').onclick=pauseSong;
+ $('stop').onclick=()=>{stopSong(true);setMessage('Stopped');};
+ $('songPos').max=END;$('songPos').onchange=()=>playSong(Number($('songPos').value));
+ $('reset').onclick=()=>{stopSong(true);voices=[];field=new Field2D();audioRms=0;probeSamples=[];setMessage('Reset');};
+ $('muteLaser').onclick=()=>{OPTIONS.power=OPTIONS.power>0?0:23.39;$('power').value=OPTIONS.power;$('powerVal').textContent=OPTIONS.power;};
+ if($('preset'))$('preset').onchange=e=>applyPreset(e.target.value);
+ for(const b of document.querySelectorAll('[data-preset]'))b.onclick=()=>{applyPreset(b.dataset.preset);if($('preset'))$('preset').value=b.dataset.preset;};
+ updateWavelengths();
+ $('fitCaption').textContent='488 MIDI · '+MODEL.meta.observed_pitches+' pitches';
+ requestAnimationFrame(animate);
+ // Numeric/causal tests also work without starting a real AudioContext.
+ window.PhotonicDiagnostics={
+  data:()=>({songState:song.state,scheduled:song.next,events:SCORE.length,active:voices.length,power:OPTIONS.power,
+   selected:selection,intensity:selectedVoice?.intensity||0,opticalPort:lastOpticalPort,
+   opticalRingModes:selectedVoice?.ring.length||0,audioRms,eqSource:'complex CMT field states',ADSR:false,samples:false,material:OPTIONS.material,chi2Process:OPTIONS.chi2Process,chi3Process:OPTIONS.chi3Process,
+   chi2:chi2Gain(),chi3:chi3Gain(),beta:betaEffective(),satDepth:currentNonlinear().satDepth,chi2Polarization:field.p2Magnitude,chi3Polarization:field.p3Magnitude}),
+  cmtStepper:(P=23.39,steps=3000)=>{const v={aRe:0,aIm:0,n:0,intensity:0};const arr=[];for(let j=0;j<steps;j++){integrateCMT(v,.025,P);if(j%10===0)arr.push(v.intensity);}return arr;},
+  start:singleNote,playSong,stopSong,
+  materialProbe:()=>({chi2:chi2Gain(),chi3:chi3Gain(),beta:betaEffective(),sat:currentNonlinear().satDepth,
+    output:lastOpticalPort,fieldOutput:field.output,fieldChi2:field.p2Magnitude,fieldChi3:field.p3Magnitude}),
+  setParameters:p=>{Object.assign(OPTIONS,p);syncControls();return currentNonlinear();},
+  sweep:(seconds=2,pitch=60)=>{voices=[];createVoice(pitch,90,seconds*.7);const v=voices[0];let peak=0,integral=0;for(let k=0;k<Math.ceil(seconds/.004);k++){
+   driveCMTModes(v,.004);let e=0;for(const m of v.ring)e+=m.re*m.re+m.im*m.im;peak=Math.max(e,peak);integral+=e*.004;
+  }return {peak,integral,ring:v.ring.map(m=>Math.hypot(m.re,m.im)),CMT:v.intensity};},
+  analyticNoPump:()=>{const q={aRe:0,aIm:0,n:0,intensity:0};integrateCMT(q,4,0);return q;}
+ };
+}
+window.addEventListener('DOMContentLoaded',init);
+
+</script></body></html>
